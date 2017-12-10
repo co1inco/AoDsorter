@@ -44,7 +44,6 @@ global replaceStr
 replaceStr = [["&#39;", "'"],
               ["&amp;", "&"]]
 
-
 #backgrond colours
 global bgMain
 global bgSort
