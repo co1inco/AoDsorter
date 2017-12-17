@@ -14,10 +14,13 @@ try:
 except ModuleNotFoundError:
     pilError = True
 
-global height
-global width
-height = 700
-width=540*2
+global sizeDivide
+sizeDivide = 2
+
+global canvasHeight
+global canvasWidth
+canvasHeight    = int(700   /sizeDivide)
+canvasWidth     = int(540*2 /sizeDivide)
 
 global mainSite
 global mainList
@@ -65,7 +68,8 @@ class TitleList(Frame):
         self.app = app
 
     def setup(self):
-        self.myframe=Frame(self.app, relief=GROOVE,width=width,height=height,bd=1)
+
+        self.myframe=Frame(self.app, relief=GROOVE,width=canvasWidth,height=canvasHeight,bd=1)
         self.myframe.place(x=0,y=0)
 
         self.canvas=Canvas(self.myframe)
@@ -82,11 +86,12 @@ class TitleList(Frame):
         self.frame.configure(bg = bgSort)
 
     def myfunction(self, event):
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=width,height=height)
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=canvasWidth, height=canvasHeight)
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         
+
     class blocks(Frame):
         def __init__(self, app, video, bgType):
             Frame.__init__(self, app)
@@ -104,7 +109,7 @@ class TitleList(Frame):
                 newName = findReplaceString(newName, s, r)
                 newText = findReplaceString(newText, s, r)
 
-            name = Label(self, text=newName, justify=LEFT, font=("Helvetica bold", 16), wraplength = 500, bg=backgrond)
+            name = Label(self, text=newName, justify=LEFT, font=("Helvetica bold", int(16/sizeDivide)), wraplength = int(500/sizeDivide), bg=backgrond)
             name.pack(fill=X, side=TOP)
 
         #   video.image[-10:]
@@ -114,11 +119,15 @@ class TitleList(Frame):
                 imageFile = urllib.request.urlopen(mainSite + video.image[1:]).read()
                 f.write(imageFile)
                 f.close()
-        
-            self.img = ImageTk.PhotoImage(Image.open('img/' + video.link[7:] + ".jpg"), master = self)
+            tmpImg = Image.open('img/' + video.link[7:] + ".jpg")
+            width, height = tmpImg.size
+            size = int(width/sizeDivide), int(height/sizeDivide) 
+            tmpImg.thumbnail(size, Image.ANTIALIAS) 
+            self.img = ImageTk.PhotoImage(tmpImg, master = self)
+
 
             body = Label(self, image = self.img, compound=LEFT, padx = 10,
-                          text=newText, justify=LEFT, font=("Helvetica", 12), wraplength = 250, bg=backgrond)
+                          text=newText, justify=LEFT, font=("Helvetica", int(12/sizeDivide)), wraplength = int(250/sizeDivide), bg=backgrond)
             body.pack()
 
  
@@ -127,8 +136,8 @@ class TitleList(Frame):
             button = Button(self, text = "goTo Website", command = self.openLink)
             button.pack(fill=X, side=BOTTOM)
 
-            genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", 12),
-                           wraplength = 500, bg=backgrond)
+            genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/sizeDivide)),
+                           wraplength = int(500/sizeDivide), bg=backgrond)
             genreLabel.pack(side=BOTTOM, fill=X)
 
 #        panel = Label(self, image = self.img).pack(side=LEFT)
@@ -396,8 +405,8 @@ def createSortWindow():
     sortWindow = Tk()
     sortWindow.title("AoD Sorter")
 #    sortWindow.geometry("200x310")
-    sizex = "1212"
-    sizey = "703"
+    sizex = str(canvasWidth+150)
+    sizey = str(canvasHeight)
     geometry = sizex + "x" + sizey
     sortWindow.geometry(geometry)
     sortWindow.resizable(False, False)

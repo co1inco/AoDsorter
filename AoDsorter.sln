@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AoDsorter", "AoDsorter.pyproj", "{2F4A470B-E032-4D8A-A6C9-4707B3B3CB1A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F4A470B-E032-4D8A-A6C9-4707B3B3CB1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F4A470B-E032-4D8A-A6C9-4707B3B3CB1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7BC81CFB-0B4D-4F93-AA5E-261FAC636520}
+	EndGlobalSection
+EndGlobal
