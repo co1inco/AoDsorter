@@ -15,7 +15,7 @@ except ModuleNotFoundError:
     pilError = True
 
 global sizeDivide
-sizeDivide = 2
+sizeDivide = 1
 
 global canvasHeight
 global canvasWidth
