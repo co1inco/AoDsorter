@@ -151,8 +151,10 @@ class TitleList(Frame):
             webbrowser.open_new_tab(link)
 
         
-    def buildTitleList(self, animes, aktive):
+    def buildTitleList(self, animes, aktive, searchName):
 
+ #       sNameStr = "conan"
+        sNameStr = searchName.get()
         self.setup()
 
         selectedGenres = []
@@ -161,7 +163,8 @@ class TitleList(Frame):
             if item == 1:
                 selectedGenres.append(genre[index])
 
-        print(selectedGenres)
+        print("Search Gen: >" + str(selectedGenres) + "<")
+        print("Search Str: >" + sNameStr + "<")
         
         if not os.path.exists("img/"):
             os.makedirs("img/")
@@ -169,13 +172,15 @@ class TitleList(Frame):
     
         addedTileCount = 0
         for index, videoObj in enumerate(videoList):
-            if videoObj.checkGenre(selectedGenres):
+            if videoObj.checkGenre(selectedGenres) and videoObj.checkName(sNameStr):
                 b = self.blocks( self.frame , videoObj, (int(addedTileCount/2))%2 + addedTileCount%2)
                 b.configure(bg=bgSort)
                 b.grid(sticky="W", row=int(addedTileCount/2), column=int(addedTileCount%2))
                 addedTileCount = addedTileCount + 1
 
                 self.update()
+
+        return True
                 
    
         
@@ -213,6 +218,15 @@ class Video():
                 break
             i = i + 1
         return inGenres
+
+    def checkName(self, searchName):
+        name = self.name.lower()
+        sName = searchName.lower()
+
+        if name.find(sName) > -1:
+            return True
+        else:
+            return False
 
 
 class LoadingScreen():
@@ -352,7 +366,11 @@ class ChooseFrame(Frame):
         self.checkBts = self.Checkbar( self , genre)
         self.checkBts.pack(side=TOP)
 
-        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state() ) )
+        searchName = Entry(self, width=20)
+        searchName.pack()
+#        searchName = "conan"
+
+        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName) )
         start.pack(side=BOTTOM)
         
 
