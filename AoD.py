@@ -46,7 +46,8 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
 
 global replaceStr
 replaceStr = [["&#39;", "'"],
-              ["&amp;", "&"]]
+              ["&amp;", "&"],
+              ["&quot;", "\""]]
 
 
 #backgrond colours
