@@ -151,9 +151,11 @@ class TitleList(Frame):
             webbrowser.open_new_tab(link)
 
         
-    def buildTitleList(self, animes, aktive, searchName):
+    def buildTitleList(self, animes, aktive, searchName, statusText, statusLabel):
 
- #       sNameStr = "conan"
+        statusText.set("Working")
+        statusLabel.config(fg="red")
+        
         sNameStr = searchName.get()
         self.setup()
 
@@ -179,6 +181,9 @@ class TitleList(Frame):
                 addedTileCount = addedTileCount + 1
 
                 self.update()
+
+        statusText.set("Finished")
+        statusLabel.config(fg="green")
 
         return True
                 
@@ -364,14 +369,19 @@ class ChooseFrame(Frame):
     def __init__(self, videoList, videoCanvas):
         Frame.__init__(self)
         self.checkBts = self.Checkbar( self , genre)
-        self.checkBts.pack(side=TOP)
+        self.checkBts.pack()
 
         searchName = Entry(self, width=20)
         searchName.pack()
 #        searchName = "conan"
 
-        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName) )
-        start.pack(side=BOTTOM)
+        statusStr = StringVar()
+        statusStr.set("Waiting")
+        statusLabel = Label(self, text=statusStr, textvariable=statusStr)
+        statusLabel.pack(side=TOP)
+
+        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel))
+        start.pack()
         
 
     class Checkbar(Frame): #https://www.python-kurs.eu/tkinter_checkboxes.php
