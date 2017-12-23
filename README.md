@@ -1,6 +1,6 @@
 "AoD Sorter" 
 
-To cerate the EXE:
-- python 3.4
-- py2exe
+to run setup.bat:
+- python 3.4 (available as python34.exe)
+- py2exe 
 - NSIS
