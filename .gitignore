@@ -272,5 +272,6 @@ AoD.pyw
 
 dist/
 _pycache_/
+exe/AoD.exe
 
 Thumbs.db
