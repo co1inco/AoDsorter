@@ -1,4 +1,4 @@
-!define exe 'AoD.exe'
+!define exe '../AoD.exe'
 RequestExecutionLevel user
 
 ; Comment out the "SetCompress Off" line and uncomment
@@ -16,7 +16,7 @@ Icon 'icon.ico'
 Section
     InitPluginsDir
     SetOutPath '$PLUGINSDIR'
-    File /r "E:\dev\AoDsorter\AoDsorter\dist\*" 
+    File /r "..\dist\*" 
 
     GetTempFileName $0
     DetailPrint $0
