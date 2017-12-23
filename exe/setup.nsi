@@ -1,4 +1,4 @@
-!define exe '../AoD.exe'
+!define exe 'AoD.exe'
 RequestExecutionLevel user
 
 ; Comment out the "SetCompress Off" line and uncomment
