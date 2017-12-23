@@ -5,8 +5,8 @@ RequestExecutionLevel user
 ; the next line to enable compression. Startup times
 ; will be a little slower but the executable will be
 ; quite a bit smaller
-SetCompress Off
-;SetCompressor lzma
+;SetCompress Off
+SetCompressor lzma
 
 Name 'AoD Sorter'
 OutFile ${exe}
