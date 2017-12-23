@@ -269,3 +269,7 @@ run.bat
 img/Thumbs.db
 AoD.pyw
 >>>>>>> oneWindow
+
+dist/
+_pycache_/
+
