@@ -445,6 +445,11 @@ def createSortWindow():
 
 
 if __name__ == "__main__":
+
+    mainWindow = createSortWindow() #create and hide sortwindow (if not it would open an emty window while loading)
+    
+    loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
+    loadingScreen.update()
     
     if pilError:
         Tk().withdraw()
@@ -461,10 +466,6 @@ if __name__ == "__main__":
             closeWindow()
             raise SystemExit
                                          
-        
-    mainWindow = createSortWindow() #create and hide sortwindow (if not it would open an emty window while loading)
-
-    loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
 
     videoList = get_title_list(mainSite + mainList)
     loadingScreen.increaseProgress()
