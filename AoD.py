@@ -61,17 +61,17 @@ replaceStr = [["&#39;", "'"],
 
 #backgrond colours
 
-global colors #(mostly called theme
-colors = {}
-colors['bgMain'] = None
-colors['fgMain'] = None
-colors['button'] = None
-colors['bgSort'] = None
-colors['bgTile1'] = None
-colors['fgTile1'] = None
-colors['bgTile2'] = None
-colors['fgTile2'] = None
-colors['font']    = "Helvetica"
+theme = {}
+theme['bgMain'] = None
+theme['fgMain'] = None
+theme['button'] = None
+theme['bgSort'] = None
+theme['bgTile1'] = None
+theme['fgTile1'] = None
+theme['bgTile2'] = None
+theme['fgTile2'] = None
+theme['font']    = "Helvetica"
+theme['data']    = "img/"
 
 
 class blocks(Frame):
@@ -120,14 +120,14 @@ class blocks(Frame):
 
 
 #       body ---
-        if not os.path.isfile("img/" + video.link[7:] + ".jpg"):
+        if not os.path.isfile(theme['data'] + video.link[7:] + ".jpg"):
             print("Downloading Image: " + video.name) 
-            f = open('img/' + video.link[7:] + ".jpg", 'wb')
+            f = open(theme['data'] + video.link[7:] + ".jpg", 'wb')
             imageFile = urllib.request.urlopen(mainSite + video.image[1:]).read()
             f.write(imageFile)
             f.close()
             
-        tmpImg = Image.open('img/' + video.link[7:] + ".jpg")
+        tmpImg = Image.open(theme['data'] + video.link[7:] + ".jpg")
         width, height = tmpImg.size
         size = int(width/sizeDivide), int(height/sizeDivide) 
         tmpImg.thumbnail(size, Image.ANTIALIAS) 
@@ -466,7 +466,7 @@ def windowControl(sortWindow, theme=None):
     sortedList.pack(side=LEFT)
 #    sortedList.grid(column=2)
 
-    checkBts = ChooseFrame(videoList, sortedList, genre, colors)
+    checkBts = ChooseFrame(videoList, sortedList, genre, theme)
     checkBts.pack(side=RIGHT)
 
     sortWindow.protocol("WM_DELETE_WINDOW", closeWindow)
@@ -538,9 +538,9 @@ if __name__ == "__main__":
     loadingScreen.__del__()
 
 
-    mainWindow.config(bg=colors['bgMain'])
+    mainWindow.config(bg=theme['bgMain'])
     
-    windowControl(mainWindow, colors)
+    windowControl(mainWindow, theme)
 
 
 
