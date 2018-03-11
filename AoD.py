@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 
 from tkWidgets import *
+import csvStuff
 
 loadGenre = True
 
@@ -417,6 +418,10 @@ def get_title_list(url):
 
         aShort, text = get_part(text, searchTerm[3])
 
+        pos = aName.find("\u221a")
+        if  pos > 0:
+            aName = aName[:pos] + aName[pos+1:]
+
         a.append(Video(aName, aImage, aLink, aShort))
         Start = text.find(searchTerm[0][0])
     print("Main list processing Finished")
@@ -522,23 +527,29 @@ if __name__ == "__main__":
     loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
     loadingScreen.update()
 
-    videoList = get_title_list(mainSite + mainList)
+    onlineList = get_title_list(mainSite + mainList)
+    offlineList = csvStuff.readCSV(theme['data'] + "data.csv")
+    additions = csvStuff.updateTitleList(offlineList, onlineList)
+
     loadingScreen.increaseProgress()
 
-    for index, item in enumerate(genre):
-        if loadGenre == False:
-            break
-        loadingScreen.update()
-        if genre[index] == "Deutsch":
-            middel = mainList
-        else:
-            middel = genreList
-        videoList = addGenre(mainSite + middel, genre[index], videoList)
-        loadingScreen.increaseProgress()
+    if len(additions)>0:
+        for index, item in enumerate(genre):
+            loadingScreen.update()
+
+            if genre[index] == "Deutsch":
+                middel = mainList
+            else:
+                middel = genreList
+
+            additions = addGenre(mainSite + middel, genre[index], additions)
+            loadingScreen.increaseProgress()
+        csvStuff.writeCSV(additions, theme['data'] + "data.csv")
+        offlineList = csvStuff.readCSV(theme['data'] + "data.csv")
 
     loadingScreen.__del__()
 
-
+    videoList = offlineList
     mainWindow.config(bg=theme['bgMain'])
     
     windowControl(mainWindow, theme)
