@@ -11,7 +11,7 @@ from io import BytesIO
 
 from tkWidgets import *
 
-loadGenre = False
+loadGenre = True
 
 pilError = False
 try:
@@ -65,12 +65,12 @@ global colors #(mostly called theme
 colors = {}
 colors['bgMain'] = None
 colors['fgMain'] = None
-colors['button'] = "grey"
-colors['bgSort'] = "white"
-colors['bgTile1'] = "white"
+colors['button'] = None
+colors['bgSort'] = None
+colors['bgTile1'] = None
 colors['fgTile1'] = None
-colors['bgTile2'] = "black"
-colors['fgTile2'] = "white"
+colors['bgTile2'] = None
+colors['fgTile2'] = None
 colors['font']    = "Helvetica"
 
 
