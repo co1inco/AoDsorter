@@ -520,6 +520,7 @@ if __name__ == "__main__":
     mainWindow = createSortWindow() #create and hide sortwindow (if not it would open an emty window while loading)
 
     loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
+    loadingScreen.update()
 
     videoList = get_title_list(mainSite + mainList)
     loadingScreen.increaseProgress()
