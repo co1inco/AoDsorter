@@ -69,13 +69,13 @@ colors['button'] = "grey"
 colors['bgSort'] = "white"
 colors['bgTile1'] = "white"
 colors['fgTile1'] = None
-colors['bgTile2'] = "grey"
-colors['fgTile2'] = "black"
+colors['bgTile2'] = "black"
+colors['fgTile2'] = "white"
 colors['font']    = "Helvetica"
 
 
 class blocks(Frame):
-    def __init__(self, app, video, bgType, theme=None):
+    def __init__(self, app, video, bgType=0, theme=None):
         Frame.__init__(self, app)
 
         self.link = video.link
@@ -118,7 +118,8 @@ class blocks(Frame):
         if hoverLabel:
             createToolTip(name, tmpName)
 
-        #   video.image[-10:]
+
+#       body ---
         if not os.path.isfile("img/" + video.link[7:] + ".jpg"):
             print("Downloading Image: " + video.name) 
             f = open('img/' + video.link[7:] + ".jpg", 'wb')
@@ -148,7 +149,8 @@ class blocks(Frame):
                       text=newText, justify=LEFT, font=(localFont, int(12/sizeDivide)), wraplength = int(230/sizeDivide), bg=localBg, fg=localFg)
         body.pack()
         if hoverLabel:
-            createToolTip(body, tmpText)
+            createToolTip(body, tmpText, localFont, int(12/sizeDivide), None, None)
+#       body ---
 
         emptyText = ""
         for i in range(58):
@@ -180,6 +182,8 @@ class TitleList(Frame):
             self.bg = theme['bgSort']
             self.configure(bg=self.bg)
 
+        self.oldMouseMove = 0
+
     def setup(self):
         self.myframe=Frame(self.app, relief=GROOVE,width=canvasWidth,height=canvasHeight,bd=1)
         self.myframe.place(x=0,y=0)
@@ -195,14 +199,28 @@ class TitleList(Frame):
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.frame.bind("<Configure>", self.myfunction)
 
+#        self.myframe.bind_all("<Button-1>", self._on_button1)    #  touch support at some point?
+#        self.myframe.bind_all("<B1-Motion>", self._on_b1_motion)
+
     def myfunction(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=canvasWidth, height=canvasHeight)
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def _on_button1(self, event):
+        self.mouseXold = event.y
+        print(self.canvas.yview())
+
+    def _on_b1_motion(self, event):
+        if self.mouseXold-event.y > 0:
+            self.canvas.yview_scroll(1, "units")
+        elif self.mouseXold-event.y < 0:
+            self.canvas.yview_scroll(-1, "units")
+        self.mouseXold = event.y
+        print(event.y)
                 
     def buildTitleList(self, animes, aktive, searchName, statusText, statusLabel):
-
         statusText.set("Working")
         statusLabel.config(fg="red")
         

@@ -67,11 +67,16 @@ class Checkbar(Frame): #https://www.python-kurs.eu/tkinter_checkboxes.php
 
 
 class ToolTip(object):
-    def __init__(self, widget):
+    def __init__(self, widget, font, size, bg, fg):
         self.widget = widget
         self.tipwindow = None
         self.id = None
         self.x = self.y = 0
+		
+        self.font = font
+        self.size = size
+        self.bg = bg
+        self.fg = fg
 
     def showtip(self, text):
         "Display text in tooltip window"
@@ -80,7 +85,7 @@ class ToolTip(object):
             return
         x, y, cx, cy = self.widget.bbox("insert")
         x = x + self.widget.winfo_rootx() + 27
-        y = y + cy + self.widget.winfo_rooty() +27
+        y = y + cy + self.widget.winfo_rooty() 
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry("+%d+%d" % (x, y))
@@ -91,9 +96,12 @@ class ToolTip(object):
                        "help", "noActivates")
         except TclError:
             pass
+
+        self.tipwindow.bind('<Leave>', self.leave)
+        
         label = Label(tw, text=self.text, justify=LEFT,
-                      background="#ffffe0", relief=SOLID, borderwidth=1,
-                      font=("tahoma", "8", "normal"))
+                      background=self.bg, fg=self.fg, relief=SOLID, borderwidth=1,
+                      font=(self.font, self.size, "normal"))
         label.pack(ipadx=1)
 
     def hidetip(self):
@@ -102,8 +110,11 @@ class ToolTip(object):
         if tw:
             tw.destroy()
 
-def createToolTip(widget, text):
-    toolTip = ToolTip(widget)
+    def leave(self, event):
+        print("leave")
+
+def createToolTip(widget, text, font="tahoma", size=8, bg="#ffffe0", fg=None):
+    toolTip = ToolTip(widget, font, size, bg, fg)
     def enter(event):
         toolTip.showtip(text)
     def leave(event):
