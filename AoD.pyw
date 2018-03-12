@@ -3,10 +3,16 @@ import time
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
+from tkinter import font as tkfont
 import webbrowser
 import os.path
 import os
 from io import BytesIO
+
+from tkWidgets import *
+import csvStuff
+
+loadGenre = True
 
 pilError = False
 try:
@@ -14,21 +20,25 @@ try:
 except ModuleNotFoundError:
     pilError = True
 
+
 global sizeDivide
 sizeDivide = 1
+
 
 global canvasHeight
 global canvasWidth
 canvasHeight    = int(700   /sizeDivide)
-canvasWidth     = int(540*2 /sizeDivide)
+canvasWidth     = int(529*2 /sizeDivide)
+
 
 global mainSite
 global mainList
 global genreList
 
-mainSite = "https://www.anime-on-demand.de/"
-mainList = "animes/"
-genreList = "animes/genre/"
+mainSite = "https://www.anime-on-demand.de"
+mainList = "/animes/"
+genreList = "/animes/genre/"
+
 
 global genre
 genre = ['Abenteuer', 'Action', 'Comedy',
@@ -51,25 +61,131 @@ replaceStr = [["&#39;", "'"],
 
 
 #backgrond colours
-global bgMain
-global bgSort
-global bgTile1
-global bgTile2
 
-bgMain = None
-bgSort = None
-bgTile1 = None
-bgTile2 = None
+theme = {}
+theme['bgMain'] = None
+theme['fgMain'] = None
+theme['button'] = None
+theme['bgSort'] = None
+theme['bgTile1'] = None
+theme['fgTile1'] = None
+theme['bgTile2'] = None
+theme['fgTile2'] = None
+theme['font']    = "Helvetica"
+theme['data']    = "img/"
+
+
+class blocks(Frame):
+    def __init__(self, app, video, bgType=0, theme=None):
+        Frame.__init__(self, app)
+
+        self.link = video.link
+
+        if theme != None:
+#            localFont = theme['font']
+            if bgType == 1:
+                localBg = theme['bgTile1']
+                localFg = theme['fgTile1']
+                bgSort = theme['bgSort']
+            else:
+                localBg = theme['bgTile2']
+                localFg = theme['fgTile2']
+                bgSort = theme['bgSort']
+        else:
+            localBg = None
+            localFg = None
+            bgSort = None
+        localFont = "Helvetica"
+#        localFont = "Consolas"
+        self.config(bg=localBg)
+
+        newName = video.name
+        newText = video.text
+        for s, r in replaceStr:
+            newName = findReplaceString(newName, s, r)
+            newText = findReplaceString(newText, s, r)
+        
+        cutoff = 45
+        hoverLabel=False
+        if len(newName) > cutoff/sizeDivide:
+            tmpName = newName
+            newName = newName[:int(cutoff/sizeDivide) - 3] + " ..."
+            hoverLabel = True
+
+
+        name = Label(self, text=newName, justify=LEFT, font=(localFont, int(16/sizeDivide), "bold"), wraplength = int(500/sizeDivide), bg=localBg, fg=localFg)
+        name.pack(fill=X, side=TOP)
+
+        if hoverLabel:
+            createToolTip(name, tmpName)
+
+
+#       body ---
+        if not os.path.isfile(theme['data'] + video.link[7:] + ".jpg"):
+            print("Downloading Image: " + video.name) 
+            f = open(theme['data'] + video.link[7:] + ".jpg", 'wb')
+            imageFile = urllib.request.urlopen(mainSite + video.image[1:]).read()
+            f.write(imageFile)
+            f.close()
+            
+        tmpImg = Image.open(theme['data'] + video.link[7:] + ".jpg")
+        width, height = tmpImg.size
+        size = int(width/sizeDivide), int(height/sizeDivide) 
+        tmpImg.thumbnail(size, Image.ANTIALIAS) 
+        self.img = ImageTk.PhotoImage(tmpImg, master = self)
+
+        if not newText.endswith(".") or not newText.endswith("!") or not newText.endswith("?"): # why dots sometimes missing??
+            newText = newText + "."
+        tmpText = ""
+        hoverlabel = False
+        breakText, charCount = lineBreak(newText, 220/sizeDivide, charCountYes=True,font=localFont, size=int(12/sizeDivide))
+        if len(charCount) > 8:
+            tmpText = breakText
+            textLen = 0
+            for i in range(0, 8):
+                textLen = textLen + charCount[i]
+            newText = newText[:textLen] + " (...)"
+            hoverLabel = True
+        body = Label(self, image = self.img, compound=LEFT, padx = 10,
+                      text=newText, justify=LEFT, font=(localFont, int(12/sizeDivide)), wraplength = int(230/sizeDivide), bg=localBg, fg=localFg)
+        body.pack()
+        if hoverLabel:
+            createToolTip(body, tmpText, localFont, int(12/sizeDivide), None, None)
+#       body ---
+
+        emptyText = ""
+        for i in range(58):
+            emptyText = emptyText + " "
+        emptyLine = Label(self, text=emptyText, bg = bgSort, font=("Consolas", int(12/sizeDivide))).pack(side=BOTTOM)
+
+        button = Button(self, text = "goTo Website", command = self.openLink, bg=localBg, fg=localFg)
+        button.pack(fill=X, side=BOTTOM)
+
+        genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/sizeDivide)),
+                       wraplength = int(500/sizeDivide), bg=localBg, fg=localFg)
+        genreLabel.pack(side=BOTTOM, fill=X)
+
+
+    def openLink(self):
+        link = mainSite + self.link
+        print(link)
+        webbrowser.open_new_tab(link)
 
 
 
 class TitleList(Frame):
-    def  __init__(self, app):
+    def  __init__(self, app, theme=None):
         Frame.__init__(self, app)
         self.app = app
 
-    def setup(self):
+        self.theme = theme
+        if self.theme != None:
+            self.bg = theme['bgSort']
+            self.configure(bg=self.bg)
 
+        self.oldMouseMove = 0
+
+    def setup(self):
         self.myframe=Frame(self.app, relief=GROOVE,width=canvasWidth,height=canvasHeight,bd=1)
         self.myframe.place(x=0,y=0)
 
@@ -83,76 +199,29 @@ class TitleList(Frame):
         self.canvas.create_window((0,0),window=self.frame,anchor='nw')
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
         self.frame.bind("<Configure>", self.myfunction)
-    
-        self.frame.configure(bg = bgSort)
+
+#        self.myframe.bind_all("<Button-1>", self._on_button1)    #  touch support at some point?
+#        self.myframe.bind_all("<B1-Motion>", self._on_b1_motion)
 
     def myfunction(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"),width=canvasWidth, height=canvasHeight)
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        
 
-    class blocks(Frame):
-        def __init__(self, app, video, bgType):
-            Frame.__init__(self, app)
+    def _on_button1(self, event):
+        self.mouseXold = event.y
+        print(self.canvas.yview())
 
-            self.link = video.link
-
-            if bgType == 1:
-                backgrond = bgTile1
-            else:
-                backgrond = bgTile2
-
-            newName = video.name
-            newText = video.text
-            for s, r in replaceStr:
-                newName = findReplaceString(newName, s, r)
-                newText = findReplaceString(newText, s, r)
-
-            name = Label(self, text=newName, justify=LEFT, font=("Helvetica bold", int(16/sizeDivide)), wraplength = int(500/sizeDivide), bg=backgrond)
-            name.pack(fill=X, side=TOP)
-
-        #   video.image[-10:]
-            if not os.path.isfile("img/" + video.link[7:] + ".jpg"):
-                print("Downloading Image: " + video.name) 
-                f = open('img/' + video.link[7:] + ".jpg", 'wb')
-                imageFile = urllib.request.urlopen(mainSite + video.image[1:]).read()
-                f.write(imageFile)
-                f.close()
-            tmpImg = Image.open('img/' + video.link[7:] + ".jpg")
-            width, height = tmpImg.size
-            size = int(width/sizeDivide), int(height/sizeDivide) 
-            tmpImg.thumbnail(size, Image.ANTIALIAS) 
-            self.img = ImageTk.PhotoImage(tmpImg, master = self)
-
-
-            body = Label(self, image = self.img, compound=LEFT, padx = 10,
-                          text=newText, justify=LEFT, font=("Helvetica", int(12/sizeDivide)), wraplength = int(250/sizeDivide), bg=backgrond)
-            body.pack()
-
- 
-            emtyLine = Label(self, text=' ', bg = bgSort).pack(side=BOTTOM)
-        
-            button = Button(self, text = "goTo Website", command = self.openLink)
-            button.pack(fill=X, side=BOTTOM)
-
-            genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/sizeDivide)),
-                           wraplength = int(500/sizeDivide), bg=backgrond)
-            genreLabel.pack(side=BOTTOM, fill=X)
-
-#        panel = Label(self, image = self.img).pack(side=LEFT)
- #       topline = Label(self, text=video.text, justify=LEFT, font=("Helvetica", 12), wraplength = 250)
- #       topline.pack(side=TOP)
-
-        def openLink(self):
-            link = mainSite + self.link
-            print(link)
-            webbrowser.open_new_tab(link)
-
-        
+    def _on_b1_motion(self, event):
+        if self.mouseXold-event.y > 0:
+            self.canvas.yview_scroll(1, "units")
+        elif self.mouseXold-event.y < 0:
+            self.canvas.yview_scroll(-1, "units")
+        self.mouseXold = event.y
+        print(event.y)
+                
     def buildTitleList(self, animes, aktive, searchName, statusText, statusLabel):
-
         statusText.set("Working")
         statusLabel.config(fg="red")
         
@@ -175,8 +244,7 @@ class TitleList(Frame):
         addedTileCount = 0
         for index, videoObj in enumerate(videoList):
             if videoObj.checkGenre(selectedGenres) and videoObj.checkName(sNameStr):
-                b = self.blocks( self.frame , videoObj, (int(addedTileCount/2))%2 + addedTileCount%2)
-                b.configure(bg=bgSort)
+                b = blocks( self.frame , videoObj, (int(addedTileCount/2))%2 + addedTileCount%2, theme=self.theme)
                 b.grid(sticky="W", row=int(addedTileCount/2), column=int(addedTileCount%2))
                 addedTileCount = addedTileCount + 1
 
@@ -207,12 +275,10 @@ class Video():
         self.genre.append(genre)
 
     def checkGenre(self, genres):
-
         inGenres = True
         i = 0
         for x in genres:
             inGenres = False
-
             j = 0
             for y in self.genre:
                 if genres[i] == self.genre[j]:
@@ -227,51 +293,36 @@ class Video():
     def checkName(self, searchName):
         name = self.name.lower()
         sName = searchName.lower()
-
         if name.find(sName) > -1:
             return True
         else:
             return False
 
 
-class LoadingScreen():
-    def __init__(self, work, length):
-        self.length = length
-        self.lScreen = Toplevel()
-        Label(self.lScreen, text="Working").pack()
-        self.progress = 0
+class ChooseFrame(Frame):
+    def __init__(self, videoList, videoCanvas, genreList, theme=None):
+        if theme != None:
+            bg = theme['bgMain']
+            fg = theme['fgMain']
+        else:
+            bg = None
+            fg = None
+            
+        Frame.__init__(self)
+        self.config(bg=bg)
+        self.checkBts = Checkbar( self , genreList, bg=bg, fg=fg)
+        self.checkBts.pack()
 
-        self.work  = Label(self.lScreen, text=work).pack()
-        
-        self.progress_str = StringVar()
-        self.progress_str.set(str(self.progress) + ' / ' + str(self.length))
-        self.propgressLabel = Label(self.lScreen, text=self.progress_str, textvariable=self.progress_str).pack()
+        searchName = Entry(self, width=20)
+        searchName.pack()
 
-        self.progress_var = DoubleVar()
-        self.prog_bar = ttk.Progressbar(self.lScreen, variable=self.progress_var, maximum=length)
-        self.prog_bar.pack()
+        statusStr = StringVar()
+        statusStr.set("Waiting")
+        statusLabel = Label(self, text=statusStr, textvariable=statusStr, bg=bg, fg=fg)
+        statusLabel.pack(side=TOP)
 
-        self.lScreen.pack_slaves()
-
-        self.lScreen.protocol("WM_DELETE_WINDOW", self.destroyed)
-
-    def increaseProgress(self):
-        self.progress = self.progress + 1
-        if self.progress >= self.length:
-            progress = 0
-        self.progress_var.set(self.progress)
-        self.progress_str.set(str(self.progress) + ' / ' + str(self.length))
-
-    def update(self):
-        self.lScreen.update()
-
-    def destroyed(self):
-        os._exit(1)
-        pass
-
-    def __del__(self):
-        self.lScreen.destroy()
-        del self
+        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel), bg=bg, fg=fg)
+        start.pack()
 
 
 def findReplaceString(string, replace, replaceWith):
@@ -289,6 +340,48 @@ def findReplaceString(string, replace, replaceWith):
         newName = newName + rest[:place] + replaceWith
         rest = rest[place+length:]
 
+
+def lineBreak(string, wraplenght, charCountYes = False, font = "Helvetica", size=8):
+    
+    def charInFont(string, wraplenght, font = "Helvetica", size=8):
+        font = tkfont.Font(family=font, size=size)
+        i = 0
+        while font.measure(string[:i]) < wraplenght:
+            i = i + 1
+            if i >= len(string):
+                break
+        return i
+    
+    charCount = []
+    newString = ""
+    while True:
+        lenght = charInFont(string, wraplenght, size=size)
+
+        if len(string) <= lenght:
+            newString = newString + string
+            charCount.append(len(string))
+            break
+        
+        currentChar = lenght
+        for i in range(lenght, 0, -1):
+            if i == 1:
+                newString = newString + string[:lenght] + "\n"
+                charCount.append(len(string[:lenght]))
+                string = string[lenght:]
+                break
+            if string[i] == " ":
+                newString = newString + string[:i] + "\n"
+                charCount.append(len(string[:i]))
+                string = string[i+1:]
+                break
+
+    if charCountYes:
+        return newString, charCount
+    else:
+        return newString
+
+    
+
 def get_part(file, searchFor):
     termLen = len(searchFor[0])
     
@@ -298,6 +391,7 @@ def get_part(file, searchFor):
     out = file[:end]
 
     return out, file
+
 
 def get_title_list(url):
     print(url)
@@ -323,6 +417,10 @@ def get_title_list(url):
         aLink, text = get_part(text, searchTerm[2])
 
         aShort, text = get_part(text, searchTerm[3])
+
+        pos = aName.find("\u221a")
+        if  pos > 0:
+            aName = aName[:pos] + aName[pos+1:]
 
         a.append(Video(aName, aImage, aLink, aShort))
         Start = text.find(searchTerm[0][0])
@@ -365,52 +463,15 @@ def addGenre(url, genre, Animes): #gives back the full list and added genres |ge
     return Animes
          
 
-class ChooseFrame(Frame):
-    def __init__(self, videoList, videoCanvas):
-        Frame.__init__(self)
-        self.checkBts = self.Checkbar( self , genre)
-        self.checkBts.pack()
-
-        searchName = Entry(self, width=20)
-        searchName.pack()
-#        searchName = "conan"
-
-        statusStr = StringVar()
-        statusStr.set("Waiting")
-        statusLabel = Label(self, text=statusStr, textvariable=statusStr)
-        statusLabel.pack(side=TOP)
-
-        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel))
-        start.pack()
-        
-
-    class Checkbar(Frame): #https://www.python-kurs.eu/tkinter_checkboxes.php
-        def __init__(self, parent=None, picks=[], anchor=W):
-            Frame.__init__(self, parent)
-            self.vars = []
-            count = 0
-            for pick in picks:
-                var = IntVar()
-                chk = Checkbutton(self, text=pick, variable=var, bg = bgMain)
-                chk.grid(row=count, sticky=W)
- 
-#               chk.pack( anchor=anchor, expand=YES, fill=X)
-                self.vars.append(var)
-                count = count + 1
-        def state(self):
-            return map((lambda var: var.get()), self.vars)
-
-
-
-def windowControl(sortWindow):
+def windowControl(sortWindow, theme=None):
  
     sortWindow.deiconify() #make the sortWindow visible == "create"
     
-    sortedList = TitleList(sortWindow)
+    sortedList = TitleList(sortWindow, theme)
     sortedList.pack(side=LEFT)
 #    sortedList.grid(column=2)
 
-    checkBts = ChooseFrame(videoList, sortedList)
+    checkBts = ChooseFrame(videoList, sortedList, genre, theme)
     checkBts.pack(side=RIGHT)
 
     sortWindow.protocol("WM_DELETE_WINDOW", closeWindow)
@@ -439,7 +500,6 @@ def createSortWindow():
     geometry = sizex + "x" + sizey
     sortWindow.geometry(geometry)
     sortWindow.resizable(False, False)
-    sortWindow.configure(bg=bgMain)
     sortWindow.withdraw()
     return sortWindow
 
@@ -465,27 +525,34 @@ if __name__ == "__main__":
     mainWindow = createSortWindow() #create and hide sortwindow (if not it would open an emty window while loading)
 
     loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
+    loadingScreen.update()
 
-    videoList = get_title_list(mainSite + mainList)
+    onlineList = get_title_list(mainSite + mainList)
+    offlineList = csvStuff.readCSV(theme['data'] + "data.csv")
+    additions = csvStuff.updateTitleList(offlineList, onlineList)
+
     loadingScreen.increaseProgress()
 
-    for index, item in enumerate(genre):
-        
-        loadingScreen.update()
+    if len(additions)>0:
+        for index, item in enumerate(genre):
+            loadingScreen.update()
 
-        if genre[index] == "Deutsch":
-            middel = mainList
-        else:
-            middel = genreList
+            if genre[index] == "Deutsch":
+                middel = mainList
+            else:
+                middel = genreList
 
-        videoList = addGenre(mainSite + middel, genre[index], videoList)
-
-        loadingScreen.increaseProgress()
+            additions = addGenre(mainSite + middel, genre[index], additions)
+            loadingScreen.increaseProgress()
+        csvStuff.writeCSV(additions, theme['data'] + "data.csv")
+        offlineList = csvStuff.readCSV(theme['data'] + "data.csv")
 
     loadingScreen.__del__()
 
+    videoList = offlineList
+    mainWindow.config(bg=theme['bgMain'])
     
-    windowControl(mainWindow)
+    windowControl(mainWindow, theme)
 
 
 
