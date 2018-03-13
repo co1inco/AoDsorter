@@ -79,10 +79,11 @@ class blocks(Frame):
     def __init__(self, app, video, bgType=0, theme=None):
         Frame.__init__(self, app)
 
-        self.link = video.link
+        self.video = video
 
         if theme != None:
 #            localFont = theme['font']
+            self.dataPath = theme['data']
             if bgType == 1:
                 localBg = theme['bgTile1']
                 localFg = theme['fgTile1']
@@ -92,6 +93,7 @@ class blocks(Frame):
                 localFg = theme['fgTile2']
                 bgSort = theme['bgSort']
         else:
+            self.dataPath = "img/"
             localBg = None
             localFg = None
             bgSort = None
@@ -121,14 +123,15 @@ class blocks(Frame):
 
 
 #       body ---
-        if not os.path.isfile(theme['data'] + video.link[7:] + ".jpg"):
-            print("Downloading Image: " + video.name) 
-            f = open(theme['data'] + video.link[7:] + ".jpg", 'wb')
-            imageFile = urllib.request.urlopen(mainSite + video.image[1:]).read()
-            f.write(imageFile)
-            f.close()
+        if not os.path.isfile(theme['data'] + self.video.link[7:] + ".jpg"):
+            self.downloadImage()
+
+        try:
+            tmpImg = Image.open(theme['data'] + self.video.link[7:] + ".jpg")
+        except OSError:
+            self.downloadImage()
+            tmpImg = Image.open(theme['data'] + self.video.link[7:] + ".jpg")
             
-        tmpImg = Image.open(theme['data'] + video.link[7:] + ".jpg")
         width, height = tmpImg.size
         size = int(width/sizeDivide), int(height/sizeDivide) 
         tmpImg.thumbnail(size, Image.ANTIALIAS) 
@@ -167,9 +170,22 @@ class blocks(Frame):
 
 
     def openLink(self):
-        link = mainSite + self.link
+        link = mainSite + self.video.link
         print(link)
         webbrowser.open_new_tab(link)
+
+
+    def downloadImage(self):
+            print("Downloading Image: " + self.video.name) 
+            f = open(theme['data'] + self.video.link[7:] + ".jpg", 'wb')
+            try:
+                imageFile = urllib.request.urlopen(mainSite + "/" + self.video.image[1:]).read()
+                f.write(imageFile)
+                f.close()
+            except urllib.error.URLError:
+                # window, that informs that the download failed
+                pass
+
 
 
 
@@ -546,6 +562,20 @@ if __name__ == "__main__":
             loadingScreen.increaseProgress()
         csvStuff.writeCSV(additions, theme['data'] + "data.csv")
         offlineList = csvStuff.readCSV(theme['data'] + "data.csv")
+
+
+# use without cache
+#    for index, item in enumerate(genre):
+#        loadingScreen.update()
+#        if item == "Deutsch":
+#            middel = mainList
+#        else:
+#            middel = genreList
+#        onlineList = addGenre(mainSite + middel, genre[index], onlineList)
+#        loadingScreen.increaseProgress()
+
+#    offlineList = onlineList 
+
 
     loadingScreen.__del__()
 
