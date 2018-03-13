@@ -503,6 +503,7 @@ def closeWindow():
 
 def createSortWindow():
     sortWindow = Tk()
+    sortWindow.withdraw()
     sortWindow.title("AoD Sorter")
 #    sortWindow.geometry("200x310")
     sizex = str(canvasWidth+150)
@@ -510,7 +511,8 @@ def createSortWindow():
     geometry = sizex + "x" + sizey
     sortWindow.geometry(geometry)
     sortWindow.resizable(False, False)
-    sortWindow.withdraw()
+    if os.path.isfile("logo.ico"):
+        sortWindow.iconbitmap(os.getcwd() + '/logo.ico')
     return sortWindow
 
 
