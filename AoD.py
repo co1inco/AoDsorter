@@ -264,7 +264,8 @@ class TitleList(Frame):
 
                 self.update()
 
-        statusText.set("Finished")
+        statusText.set("Loaded %i Titel" % addedTileCount)
+#        statusText.set("Finished")
         statusLabel.config(fg="green")
 
         return True
