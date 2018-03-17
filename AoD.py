@@ -23,14 +23,7 @@ except ModuleNotFoundError:
 global sizeDivide
 sizeDivide = 1
 
-global mainSite
-global mainList
-global genreList
-
-mainSite = "https://www.anime-on-demand.de"
-mainList = "/animes/"
-genreList = "/animes/genre/"
-
+urls = ["https://www.anime-on-demand.de", "/animes/", "/animes/genre/"]
 
 global genre
 genre = ['Abenteuer', 'Action', 'Comedy',
@@ -448,39 +441,55 @@ def get_title_list(url):
     return a
 
 
-def addGenre(url, genre, Animes): #gives back the full list and added genres |gets only one genre not a list
+def addGenre(urls, genreList, videoList, loadingScreen = None): 
+    if loadingScreen == None:
+        class dummyScreen():
+            def increaseProgress(self):
+                pass
+            def update(self):
+                pass
+        loadingScreen = dummyScreen()
 
-    k = genre.find(' ')
-    
-    urlGenre = genre
-    if k > 0:
-        urlGenre = genre[:k]+'%20'+genre[k+1:]
-    if genre == "Deutsch":
-        urlGenre = "nonomu"        
-    
-    name = 'animebox-title'
-    
-    termLen = len(name)
-    
-    site = urllib.request.urlopen(url + urlGenre)
-    text = site.read().decode("utf8")
-    print(genre + " Download Finished")
+    for index, genre in enumerate(genreList):
+        loadingScreen.update()
+        if genre == "Deutsch":
+            url = urls[0] + urls[1]
+        else:
+            url = urls[0] + urls[2]
 
-    title = []
-    start = 1
-    while start > -1:
-        aName, text = get_part(text, searchTerm[0])
-        title.append(aName)
-        start = text.find(name)
+        k = genre.find(' ')
+    
+        urlGenre = genre
+        if k > 0:
+            urlGenre = genre[:k]+'%20'+genre[k+1:]
+        if genre == "Deutsch":
+            urlGenre = "nonomu"        
+    
+        name = 'animebox-title'
+    
+        termLen = len(name)
+    
+        site = urllib.request.urlopen(url + urlGenre)
+        text = site.read().decode("utf8")
+        print(genre + " Download Finished")
 
-    for i in Animes:
-        try:
-            if i.name == title[0]:
-                i.addGenre(genre)
-                title.pop(0)
-        except IndexError:
-            break
-    return Animes
+        title = []
+        start = 1
+        while start > -1:
+            aName, text = get_part(text, searchTerm[0])
+            title.append(aName)
+            start = text.find(name)
+
+        for i in videoList:
+            try:
+                if i.name == title[0]:
+                    i.addGenre(genre)
+                    title.pop(0)
+            except IndexError:
+                break
+        loadingScreen.increaseProgress()
+
+    return videoList
          
 
 def windowControl(sortWindow, theme=None):
@@ -515,7 +524,6 @@ def createSortWindow():
     sortWindow = Tk()
     sortWindow.withdraw()
     sortWindow.title("AoD Sorter")
-#    sortWindow.geometry("200x310")
     sizex = str(canvasWidth+150)
     sizey = str(canvasHeight)
     geometry = sizex + "x" + sizey
@@ -549,19 +557,10 @@ if __name__ == "__main__":
     loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
     loadingScreen.update()
 
-    videoList = get_title_list(mainSite + mainList)
+    videoList = get_title_list(urls[0] + urls[1])
     loadingScreen.increaseProgress()
 
-    for index, item in enumerate(genre):
-        if loadGenre == False:
-            break
-        loadingScreen.update()
-        if genre[index] == "Deutsch":
-            middel = mainList
-        else:
-            middel = genreList
-        videoList = addGenre(mainSite + middel, genre[index], videoList)
-        loadingScreen.increaseProgress()
+    videoList = addGenre(urls, genre, videoList, loadingScreen)
 
     loadingScreen.__del__()
 
