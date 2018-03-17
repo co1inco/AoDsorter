@@ -23,13 +23,6 @@ except ModuleNotFoundError:
 global sizeDivide
 sizeDivide = 1
 
-
-global canvasHeight
-global canvasWidth
-canvasHeight    = int(700   /sizeDivide)
-canvasWidth     = int(529*2 /sizeDivide)
-
-
 global mainSite
 global mainList
 global genreList
@@ -72,6 +65,13 @@ theme['bgTile2'] = None
 theme['fgTile2'] = None
 theme['font']    = "Helvetica"
 theme['data']    = "img/"
+theme['guiScaleDiv'] = 1
+
+
+global canvasHeight
+global canvasWidth
+canvasHeight    = int(700   /theme['guiScaleDiv'])
+canvasWidth     = int(529*2 /theme['guiScaleDiv'])
 
 
 class blocks(Frame):
@@ -81,8 +81,9 @@ class blocks(Frame):
         self.video = video
 
         if theme != None:
-#            localFont = theme['font']
+            localFont = theme['font']
             self.dataPath = theme['data']
+            guiScale = theme['guiScaleDiv']
             if bgType == 1:
                 localBg = theme['bgTile1']
                 localFg = theme['fgTile1']
@@ -96,25 +97,24 @@ class blocks(Frame):
             localBg = None
             localFg = None
             bgSort = None
-        localFont = "Helvetica"
+            guiScale = 1
+            localFont = "Helvetica"
 #        localFont = "Consolas"
         self.config(bg=localBg)
+
 
         newName = video.name
         newText = video.text
         for s, r in replaceStr:
             newName = findReplaceString(newName, s, r)
             newText = findReplaceString(newText, s, r)
-        
-        cutoff = 45
         hoverLabel=False
-        if len(newName) > cutoff/sizeDivide:
-            tmpName = newName
-            newName = newName[:int(cutoff/sizeDivide) - 3] + " ..."
+        breakName, charCount = lineBreak(newName, 400/guiScale, charCountYes=True,font=localFont, size=int(16/guiScale+1*guiScale))
+        if len(charCount) > 1:
+            tmpName = breakName
+            newName = newName[:int(charCount[0]) - 3] + " ..."
             hoverLabel = True
-
-
-        name = Label(self, text=newName, justify=LEFT, font=(localFont, int(16/sizeDivide), "bold"), wraplength = int(500/sizeDivide), bg=localBg, fg=localFg)
+        name = Label(self, text=newName, justify=LEFT, font=(localFont, int(16/guiScale), "bold"), wraplength = int(500/guiScale), bg=localBg, fg=localFg)
         name.pack(fill=X, side=TOP)
 
         if hoverLabel:
@@ -132,7 +132,7 @@ class blocks(Frame):
             tmpImg = Image.open(theme['data'] + self.video.link[7:] + ".jpg")
             
         width, height = tmpImg.size
-        size = int(width/sizeDivide), int(height/sizeDivide) 
+        size = int(width/guiScale), int(height/guiScale) 
         tmpImg.thumbnail(size, Image.ANTIALIAS) 
         self.img = ImageTk.PhotoImage(tmpImg, master = self)
 
@@ -140,7 +140,7 @@ class blocks(Frame):
             newText = newText + "."
         tmpText = ""
         hoverlabel = False
-        breakText, charCount = lineBreak(newText, 220/sizeDivide, charCountYes=True,font=localFont, size=int(12/sizeDivide))
+        breakText, charCount = lineBreak(newText, 220/guiScale, charCountYes=True,font=localFont, size=int(12/guiScale+1*guiScale))
         if len(charCount) > 8:
             tmpText = breakText
             textLen = 0
@@ -149,22 +149,31 @@ class blocks(Frame):
             newText = newText[:textLen] + " (...)"
             hoverLabel = True
         body = Label(self, image = self.img, compound=LEFT, padx = 10,
-                      text=newText, justify=LEFT, font=(localFont, int(12/sizeDivide)), wraplength = int(230/sizeDivide), bg=localBg, fg=localFg)
+                      text=newText, justify=LEFT, font=(localFont, int(12/guiScale)), wraplength = int(230/guiScale), bg=localBg, fg=localFg)
         body.pack()
         if hoverLabel:
-            createToolTip(body, tmpText, localFont, int(12/sizeDivide), None, None)
+            createToolTip(body, tmpText, localFont, int(12/guiScale), None, None)
 #       body ---
 
+        
         emptyText = ""
+        """ takes ages to load
+        tetx, lines = lineBreak(emptyText, int(529/guiScale), True, size=int(12/guiScale), font="Consolas")
+        while len(lines) < 2:
+            print(lines)
+            emptyText = emptyText + " "
+            tetx, lines = lineBreak(emptyText, int(529/guiScale), True, size=int(12/guiScale), font="Consolas")
+        """
         for i in range(58):
             emptyText = emptyText + " "
-        emptyLine = Label(self, text=emptyText, bg = bgSort, font=("Consolas", int(12/sizeDivide))).pack(side=BOTTOM)
+        
+        emptyLine = Label(self, text=emptyText, bg = bgSort, font=("Consolas", int(12/guiScale))).pack(side=BOTTOM) 
 
         button = Button(self, text = "goTo Website", command = self.openLink, bg=localBg, fg=localFg)
         button.pack(fill=X, side=BOTTOM)
 
-        genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/sizeDivide)),
-                       wraplength = int(500/sizeDivide), bg=localBg, fg=localFg)
+        genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/guiScale)),
+                       wraplength = int(500/sizeDivide), bg=localBg, fg=localFg) 
         genreLabel.pack(side=BOTTOM, fill=X)
 
 
