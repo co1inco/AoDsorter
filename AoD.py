@@ -430,10 +430,16 @@ if __name__ == "__main__":
 
     loadingScreen.__del__()
 
+    removed = sqlStuff.getNewOutdated()
+    if len(removed) > 0:
+        string = ""
+        for i in removed:
+            string = string + "Removed " + i[0][1] + "\n"
+        messagebox.showerror("Removed Title", string)
 
     mainWindow.config(bg=theme['bgMain'])
     
-#    windowControl(mainWindow, theme)
+    windowControl(mainWindow, theme)
 
 
 

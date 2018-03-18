@@ -61,7 +61,7 @@ class sqlHandle():
             lScreen = dummyScreen()
 
         onlineListe = get_title_list(urls[0] + urls[1], searchTerms)
-        onlineListe = onlineListe[2:]
+#        onlineListe = onlineListe[3:] remove title from online data (testing purposes)
         lScreen.increaseProgress()
         lScreen.update()
         
@@ -102,7 +102,7 @@ class sqlHandle():
 
         self.cur.execute("SELECT Id FROM Videos WHERE valid = 1")
         offlineList = self.cur.fetchall()
-        removed = []
+        self.removed = []
         if len(offlineList) > len(onlineListe):
             for i in offlineList:
                 found = False
@@ -111,8 +111,8 @@ class sqlHandle():
                         found = True
                         break
                 if found == False:
-                    removed.append(i[0])
-            for i in removed:
+                    self.removed.append(i[0])
+            for i in self.removed:
                 self.cur.execute("SELECT name FROM Videos WHERE Id = %s" % i)
                 print("Removed: " + self.cur.fetchall()[0][0])
                 self.cur.execute("UPDATE Videos SET Valid=0 WHERE Id = %s" % i)
@@ -138,6 +138,13 @@ class sqlHandle():
     def getOutdated(self):
         self.cur.execute("SELECT id, name FROM Videos WHERE Valid = 0")
         return self.cur.fetchall()
+
+    def getNewOutdated(self):
+        removed = []
+        for i in self.removed:
+            self.cur.execute("SELECT id, name FROM Videos WHERE id = %s" % i)
+            removed.append(self.cur.fetchall())
+        return removed
     
     def execute(self, string):
         self.cur.execute(string)
