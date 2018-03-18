@@ -7,6 +7,7 @@ import webbrowser
 import os.path
 import os
 from io import BytesIO
+import urllib
 
 from tkWidgets import *
 import sqllib
@@ -24,6 +25,8 @@ global sizeDivide
 sizeDivide = 1
 
 urls = ["https://www.anime-on-demand.de", "/animes/", "/animes/genre/"]
+global tmpUrls
+tmpUrls = urls
 
 global genre
 genre = ['Abenteuer', 'Action', 'Comedy',
@@ -190,7 +193,7 @@ class blocks(Frame):
             print("Downloading Image: " + self.video.name) 
             f = open(theme['data'] + self.video.link[7:] + ".jpg", 'wb')
             try:
-                imageFile = urllib.request.urlopen(mainSite + "/" + self.video.image[1:]).read()
+                imageFile = urllib.request.urlopen(tmpUrls[0] + "/" + self.video.image[1:]).read()
                 f.write(imageFile)
                 f.close()
             except urllib.error.URLError:
