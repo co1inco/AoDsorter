@@ -56,6 +56,7 @@ class Checkbar(Frame): #https://www.python-kurs.eu/tkinter_checkboxes.php
         for pick in picks:
             var = IntVar()
             chk = Checkbutton(self, text=pick, variable=var, bg=bg, fg=fg)
+            chk.configure(selectcolor=bg)
             chk.grid(row=count, sticky=W)
  
 #           chk.pack( anchor=anchor, expand=YES, fill=X)
@@ -67,7 +68,7 @@ class Checkbar(Frame): #https://www.python-kurs.eu/tkinter_checkboxes.php
 
 
 class ToolTip(object):
-    def __init__(self, widget, font, size, bg, fg):
+    def __init__(self, widget, font, size, bg, fg, offX=0, offY=0):
         self.widget = widget
         self.tipwindow = None
         self.id = None
@@ -78,14 +79,17 @@ class ToolTip(object):
         self.bg = bg
         self.fg = fg
 
+        self.offX = offX
+        self.offY = offY
+
     def showtip(self, text):
         "Display text in tooltip window"
         self.text = text
         if self.tipwindow or not self.text:
             return
         x, y, cx, cy = self.widget.bbox("insert")
-        x = x + self.widget.winfo_rootx() + 27
-        y = y + cy + self.widget.winfo_rooty() 
+        x = x + self.widget.winfo_rootx() + self.offX
+        y = y + cy + self.widget.winfo_rooty() + self.offY
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry("+%d+%d" % (x, y))
@@ -113,8 +117,8 @@ class ToolTip(object):
     def leave(self, event):
         print("leave")
 
-def createToolTip(widget, text, font="tahoma", size=8, bg="#ffffe0", fg=None):
-    toolTip = ToolTip(widget, font, size, bg, fg)
+def createToolTip(widget, text, font="tahoma", size=8, bg="#ffffe0", fg=None, offsetX=0, offsetY=0):
+    toolTip = ToolTip(widget, font, size, bg, fg, offsetX, offsetY)
     def enter(event):
         toolTip.showtip(text)
     def leave(event):

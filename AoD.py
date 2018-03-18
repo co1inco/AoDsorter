@@ -47,14 +47,17 @@ replaceStr = [["&#39;", "'"],
 #backgrond colours
 
 theme = {}
-theme['bgMain'] = None
-theme['fgMain'] = None
-theme['button'] = None
-theme['bgSort'] = None
-theme['bgTile1'] = None
-theme['fgTile1'] = None
-theme['bgTile2'] = None
-theme['fgTile2'] = None
+theme['bgMain'] = "#353638"
+theme['fgMain'] = "white"
+theme['buttonBg'] = "#aabe44"     #aabe44 #66cc00
+theme['buttonFg'] = "#353638"
+theme['entryBg'] = "#aabe44"
+theme['entryFg'] = "#353638"
+theme['bgSort'] = "#353638"
+theme['bgTile1'] = "#353638"
+theme['fgTile1'] = "white"
+theme['bgTile2'] =  "#353638"
+theme['fgTile2'] = "white"
 theme['font']    = "Helvetica"
 theme['data']    = "img/"
 theme['guiScaleDiv'] = 1
@@ -76,6 +79,8 @@ class blocks(Frame):
             localFont = theme['font']
             self.dataPath = theme['data']
             guiScale = theme['guiScaleDiv']
+            buttonBg = theme['buttonBg']
+            buttonFg = theme['buttonFg']
             if bgType == 1:
                 localBg = theme['bgTile1']
                 localFg = theme['fgTile1']
@@ -89,10 +94,13 @@ class blocks(Frame):
             localBg = None
             localFg = None
             bgSort = None
+            buttonBg = None
+            buttonFg = None
             guiScale = 1
             localFont = "Helvetica"
 #        localFont = "Consolas"
-        self.config(bg=localBg)
+
+        self.config(bg=localBg, relief="solid", bd=1)
 
 
         newName = video.name
@@ -110,7 +118,7 @@ class blocks(Frame):
         name.pack(fill=X, side=TOP)
 
         if hoverLabel:
-            createToolTip(name, tmpName)
+            createToolTip(name, tmpName, localFont, int(16/guiScale), bg=localBg, fg=localFg, offsetX=27, offsetY=35)
 
 
 #       body ---
@@ -144,7 +152,7 @@ class blocks(Frame):
                       text=newText, justify=LEFT, font=(localFont, int(12/guiScale)), wraplength = int(230/guiScale), bg=localBg, fg=localFg)
         body.pack()
         if hoverLabel:
-            createToolTip(body, tmpText, localFont, int(12/guiScale), None, None)
+            createToolTip(body, tmpText, localFont, int(12/guiScale), bg=localBg, fg=localFg, offsetX=27)
 #       body ---
 
         
@@ -161,8 +169,11 @@ class blocks(Frame):
         
         emptyLine = Label(self, text=emptyText, bg = bgSort, font=("Consolas", int(12/guiScale))).pack(side=BOTTOM) 
 
-        button = Button(self, text = "goTo Website", command = self.openLink, bg=localBg, fg=localFg)
-        button.pack(fill=X, side=BOTTOM)
+        button = Button(self, text = "goTo Website", command = self.openLink, bg=buttonBg, fg=buttonFg, font=(localFont, int(12/guiScale)))
+        button.config(takefocus=1)
+        button.config(width = int(50/guiScale))
+        button.pack(side=BOTTOM)
+#        button.pack(fill=X, side=BOTTOM)
 
         genreLabel = Label(self, text=video.getGenre(), justify=LEFT, font=("Helvetica bold", int(12/guiScale)),
                        wraplength = int(500/sizeDivide), bg=localBg, fg=localFg) 
@@ -201,14 +212,14 @@ class TitleList(Frame):
         self.oldMouseMove = 0
 
     def setup(self):
-        self.myframe=Frame(self.app, relief=GROOVE,width=canvasWidth,height=canvasHeight,bd=1)
+        self.myframe=Frame(self.app, relief=GROOVE,width=canvasWidth,height=canvasHeight,bd=1, bg=self.bg)
         self.myframe.place(x=0,y=0)
 
-        self.canvas=Canvas(self.myframe)
-        self.frame=Frame(self.canvas)
-        self.myscrollbar=Scrollbar(self.myframe,orient="vertical",command=self.canvas.yview)
+        self.canvas=Canvas(self.myframe, bg=self.bg)
+        self.frame=Frame(self.canvas, bg=self.bg)
+        self.myscrollbar=Scrollbar(self.myframe,orient="vertical",command=self.canvas.yview, bg=self.bg)
         self.canvas.configure(yscrollcommand=self.myscrollbar.set)
-
+        
         self.myscrollbar.pack(side="right",fill="y")
         self.canvas.pack(side="left")
         self.canvas.create_window((0,0),window=self.frame,anchor='nw')
@@ -273,20 +284,28 @@ class TitleList(Frame):
                 
 
 class ChooseFrame(Frame):
-    def __init__(self, videoList, videoCanvas, genreList, theme=None):
+    def __init__(self, videoList, videoListFrame, genreList, theme=None):
         if theme != None:
             bg = theme['bgMain']
             fg = theme['fgMain']
+            butBg = theme['buttonBg']
+            butFg = theme['buttonFg']
+            textB = theme['entryBg']
+            textF = theme['entryFg']
         else:
             bg = None
             fg = None
+            butBg = None
+            butFg = None
+            textB = None
+            textF = None
             
         Frame.__init__(self)
         self.config(bg=bg)
         self.checkBts = Checkbar( self , genreList, bg=bg, fg=fg)
-        self.checkBts.pack()
+        self.checkBts.pack(padx=20)
 
-        searchName = Entry(self, width=20)
+        searchName = Entry(self, width=20, bg=textB, fg=textF)
         searchName.pack()
 
         statusStr = StringVar()
@@ -294,7 +313,8 @@ class ChooseFrame(Frame):
         statusLabel = Label(self, text=statusStr, textvariable=statusStr, bg=bg, fg=fg)
         statusLabel.pack(side=TOP)
 
-        start = Button( self, text="Start", command=lambda: videoCanvas.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel), bg=bg, fg=fg)
+        start = Button( self, text="Start", command=lambda: videoListFrame.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel), bg=bg, fg=fg)
+        start.config(bg=butBg, fg=butFg)
         start.pack()
 
 
@@ -315,7 +335,6 @@ def findReplaceString(string, replace, replaceWith):
 
 
 def lineBreak(string, wraplenght, charCountYes = False, font = "Helvetica", size=8):
-    
     def charInFont(string, wraplenght, font = "Helvetica", size=8):
         font = tkfont.Font(family=font, size=size)
         i = 0
@@ -355,16 +374,13 @@ def lineBreak(string, wraplenght, charCountYes = False, font = "Helvetica", size
 
 
 def windowControl(sortWindow, theme=None):
- 
-    sortWindow.deiconify() #make the sortWindow visible == "create"
-    
+    sortWindow.deiconify()
     sortedList = TitleList(sortWindow, theme)
     sortedList.pack(side=LEFT)
 #    sortedList.grid(column=2)
 
     checkBts = ChooseFrame(videoList, sortedList, genre, theme)
     checkBts.pack(side=RIGHT)
-
     sortWindow.protocol("WM_DELETE_WINDOW", closeWindow)
     sortWindow.mainloop()
 
@@ -386,7 +402,7 @@ def createSortWindow():
     sortWindow = Tk()
     sortWindow.withdraw()
     sortWindow.title("AoD Sorter")
-    sizex = str(canvasWidth+150)
+    sizex = str(canvasWidth+150+20)
     sizey = str(canvasHeight)
     geometry = sizex + "x" + sizey
     sortWindow.geometry(geometry)
@@ -417,7 +433,7 @@ if __name__ == "__main__":
     mainWindow = createSortWindow() #create and hide sortwindow (if not it would open an emty window while loading)
 
     loadingScreen = LoadingScreen("Download Anime list", len(genre)+1)
-#    loadingScreen.update()
+    loadingScreen.update()
 
 #    videoList = get_title_list(urls[0] + urls[1])
 #    loadingScreen.increaseProgress()
