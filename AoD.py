@@ -181,7 +181,8 @@ class blocks(Frame):
 
 
     def openLink(self):
-        link = mainSite + self.video.link
+        global urls
+        link = urls[0] + self.video.link
         print(link)
         webbrowser.open_new_tab(link)
 
