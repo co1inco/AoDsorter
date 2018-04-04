@@ -3,6 +3,8 @@ from tkinter import messagebox
 from tkinter import ttk
 import os
 
+import time
+
 
 def Test():
     pass
@@ -82,6 +84,9 @@ class ToolTip(object):
         self.offX = offX
         self.offY = offY
 
+        self.onWidget = False
+        self.onToolTip = False
+
     def showtip(self, text):
         "Display text in tooltip window"
         self.text = text
@@ -101,7 +106,8 @@ class ToolTip(object):
         except TclError:
             pass
 
-        self.tipwindow.bind('<Leave>', self.leave)
+#        self.tipwindow.bind('<Enter>', self.enterTip)
+#        self.tipwindow.bind('<Leave>', self.exitTip)
         
         label = Label(tw, text=self.text, justify=LEFT,
                       background=self.bg, fg=self.fg, relief=SOLID, borderwidth=1,
@@ -114,14 +120,34 @@ class ToolTip(object):
         if tw:
             tw.destroy()
 
-    def leave(self, event):
-        print("leave")
+    def enterTip(self, event):
+        print("enter tip")
+        self.onToolTip = True
+
+    def exitTip(self, event):
+        self.onToolTip = False
+        if not self.onWidget:
+            self.hidetip()
 
 def createToolTip(widget, text, font="tahoma", size=8, bg="#ffffe0", fg=None, offsetX=0, offsetY=0):
     toolTip = ToolTip(widget, font, size, bg, fg, offsetX, offsetY)
-    def enter(event):
+    def enter():
         toolTip.showtip(text)
-    def leave(event):
-        toolTip.hidetip()
-    widget.bind('<Enter>', enter)
-    widget.bind('<Leave>', leave)
+
+    def enterWidget(event):
+        toolTip.onWidget = True
+        enter()
+
+    def exitWidget(event):
+        toolTip.onWidget = False
+        time.sleep(0.1)
+        if not toolTip.onToolTip:
+            toolTip.hidetip()
+            pass
+    widget.bind('<Enter>', enterWidget)
+    widget.bind('<Leave>', exitWidget)
+
+
+
+
+    

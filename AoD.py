@@ -155,6 +155,7 @@ class blocks(Frame):
                       text=newText, justify=LEFT, font=(localFont, int(12/guiScale)), wraplength = int(230/guiScale), bg=localBg, fg=localFg)
         body.pack()
         if hoverLabel:
+#            createToolTip(body, tmpText, localFont, int(12/guiScale), bg=localBg, fg=localFg, offsetX=27)
             createToolTip(body, tmpText, localFont, int(12/guiScale), bg=localBg, fg=localFg, offsetX=27)
 #       body ---
 
