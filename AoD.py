@@ -174,7 +174,7 @@ class blocks(Frame):
         emptyLine = Label(self, text=emptyText, bg = bgSort, font=("Consolas", int(12/guiScale))).pack(side=BOTTOM) 
 
         button = Button(self, text = "goTo Website", command = self.openLink, bg=buttonBg, fg=buttonFg, font=(localFont, int(12/guiScale)))
-        button.config(takefocus=1)
+#        button.config(takefocus=1)
         button.config(width = int(50/guiScale))
         button.pack(side=BOTTOM)
 #        button.pack(fill=X, side=BOTTOM)
@@ -304,23 +304,33 @@ class ChooseFrame(Frame):
             butFg = None
             textB = None
             textF = None
+        self.videoList = videoList
+        self.videoListFrame = videoListFrame
             
         Frame.__init__(self)
         self.config(bg=bg)
         self.checkBts = Checkbar( self , genreList, bg=bg, fg=fg)
         self.checkBts.pack(padx=20)
 
-        searchName = Entry(self, width=20, bg=textB, fg=textF)
-        searchName.pack()
+        self.searchName = Entry(self, width=20, bg=textB, fg=textF)
+        self.searchName.bind('<Return>', self.startTitleList)
+        self.searchName.pack()
 
-        statusStr = StringVar()
-        statusStr.set("Waiting")
-        statusLabel = Label(self, text=statusStr, textvariable=statusStr, bg=bg, fg=fg)
-        statusLabel.pack(side=TOP)
+        self.statusStr = StringVar()
+        self.statusStr.set("Waiting")
+        self.statusLabel = Label(self, text=self.statusStr, textvariable=self.statusStr, bg=bg, fg=fg)
+        self.statusLabel.pack(side=TOP)
 
-        start = Button( self, text="Start", command=lambda: videoListFrame.buildTitleList(videoList, self.checkBts.state(), searchName, statusStr, statusLabel), bg=bg, fg=fg)
+        start = Button( self, text="Start", command=self.startTitleList, bg=bg, fg=fg)
         start.config(bg=butBg, fg=butFg)
         start.pack()
+
+    def startTitleList(self, event):
+        self.videoListFrame.buildTitleList(self.videoList,
+                                      self.checkBts.state(),
+                                      self.searchName,
+                                      self.statusStr,
+                                      self.statusLabel)
 
 
 def findReplaceString(string, replace, replaceWith):
