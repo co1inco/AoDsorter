@@ -36,7 +36,7 @@ genre = ['Abenteuer', 'Action', 'Comedy',
          'Science Fiction', 'Deutsch']
 
 searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
-               ['animebox-image'    , 'alt'     , 12, -2],  #Image
+               ['animebox-image'    , 'alt'     , 11, -2],  #Image
                ['href'              , '\">'     ,  2,  0],  #Link
                ['animebox-shorttext', '</p>'    ,  2, -1]   #Short description
                ]
@@ -77,6 +77,7 @@ class blocks(Frame):
         Frame.__init__(self, app)
 
         self.video = video
+        self.video.id = self.video.link[7:]
 
         if theme != None:
             localFont = theme['font']
@@ -125,14 +126,20 @@ class blocks(Frame):
 
 
 #       body ---
-        if not os.path.isfile(theme['data'] + self.video.link[7:] + ".jpg"):
+        if not os.path.isfile(theme['data'] + self.video.id + ".jpg"):
             self.downloadImage()
 
-        try:
-            tmpImg = Image.open(theme['data'] + self.video.link[7:] + ".jpg")
-        except OSError:
-            self.downloadImage()
-            tmpImg = Image.open(theme['data'] + self.video.link[7:] + ".jpg")
+        errorCount = 0
+        for i in range(0,2):
+            try:
+                tmpImg = Image.open(theme['data'] + self.video.id + ".jpg")
+            except OSError:
+                if errorCount > 0:
+                    tmpImg = Image.new('RGB', (260,146))
+                    print("Error loading Image: " + self.video.id)
+                    break 
+                self.downloadImage()
+                errorCount = errorCount + 1
             
         width, height = tmpImg.size
         size = int(width/guiScale), int(height/guiScale) 
@@ -183,7 +190,6 @@ class blocks(Frame):
                        wraplength = int(500/sizeDivide), bg=localBg, fg=localFg) 
         genreLabel.pack(side=BOTTOM, fill=X)
 
-
     def openLink(self):
         global urls
         link = urls[0] + self.video.link
@@ -195,14 +201,13 @@ class blocks(Frame):
             print("Downloading Image: " + self.video.name) 
             f = open(theme['data'] + self.video.link[7:] + ".jpg", 'wb')
             try:
-                imageFile = urllib.request.urlopen(tmpUrls[0] + "/" + self.video.image[1:]).read()
+                imageFile = urllib.request.urlopen(self.video.image[1:]).read()
                 f.write(imageFile)
                 f.close()
             except urllib.error.URLError:
+                print("Error loading URL: " + self.video.image[1:])
                 # window, that informs that the download failed
-                pass
-
-
+               
 
 class TitleList(Frame):
     def  __init__(self, app, theme=None):
@@ -282,9 +287,9 @@ class TitleList(Frame):
                 self.update()
 
         statusText.set("Loaded %i Titel" % addedTileCount)
-#        statusText.set("Finished")
+#           statusText.set("Finished")
         statusLabel.config(fg="green")
-
+            
         return True
                 
 
@@ -325,7 +330,10 @@ class ChooseFrame(Frame):
         start.config(bg=butBg, fg=butFg)
         start.pack()
 
-    def startTitleList(self, event):
+    def startIfEnter(event):
+        self.startTitleList()
+        
+    def startTitleList(self):
         self.videoListFrame.buildTitleList(self.videoList,
                                       self.checkBts.state(),
                                       self.searchName,
