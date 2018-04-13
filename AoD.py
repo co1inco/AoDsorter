@@ -318,7 +318,7 @@ class ChooseFrame(Frame):
         self.checkBts.pack(padx=20)
 
         self.searchName = Entry(self, width=20, bg=textB, fg=textF)
-        self.searchName.bind('<Return>', self.startTitleList)
+        self.searchName.bind('<Return>', self.startIfEnter)
         self.searchName.pack()
 
         self.statusStr = StringVar()
@@ -330,7 +330,7 @@ class ChooseFrame(Frame):
         start.config(bg=butBg, fg=butFg)
         start.pack()
 
-    def startIfEnter(event):
+    def startIfEnter(self, event):
         self.startTitleList()
         
     def startTitleList(self):
