@@ -29,7 +29,6 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
                ['animebox-shorttext', '</p>'    ,  2, -1]   #Short description
                ]
 
-
 global theme
 theme = {}
 theme['imageSize'] = [130, 73, 2]
@@ -273,6 +272,7 @@ class VideoContainer(QWidget):
 
         self.searchbox = QLineEdit(self)
         self.searchbox.resize(self.searchbox.sizeHint())
+        self.searchbox.setPlaceholderText("Suchen...")
         self.searchbox.returnPressed.connect(self.startBtnHandle)
         self.searchbox.setStyleSheet("background-color: %s; color: %s; border: 0px;" % (theme['entryBg'], theme['entryFg']))
         controlbox.addWidget(self.searchbox) 
@@ -328,7 +328,7 @@ class VideoContainer(QWidget):
                 i = i+1
 
         print("Displayed Title: " + str(i))
-        self.statusLb.setText("Loaded %i Titel" % i)
+        self.statusLb.setText("%i Titel geladen" % i)
         mygroupbox.setLayout(contentgrid)
         self.scroll.takeWidget()
         self.scroll.setWidget(mygroupbox)
