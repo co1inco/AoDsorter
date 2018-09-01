@@ -29,8 +29,19 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
                ]
 
 
-global imageSize
-imageSize = [130, 73, 2]
+global theme
+theme = {}
+theme['imageSize'] = [130, 73, 2]
+theme['bgMain'] = "#353638"
+theme['fgMain'] = "white"
+theme['bgScroll'] = "#434544"
+theme['buttonBg'] = "#aabe44"     #aabe44 #66cc00
+theme['buttonFg'] = "#353638"
+theme['entryBg'] = "#aabe44"
+theme['entryFg'] = "#353638"
+
+theme['font']    = "Helvica"
+theme['data']    = "data/"
 
 global replaceStr
 replaceStr = [["&#39;", "'"],
@@ -46,7 +57,7 @@ def findReplaceString(stringIn):
             newName = ""
             rest = string
         else:
-            break
+            continue
         length = len(replace)
             
         while True:
@@ -58,53 +69,45 @@ def findReplaceString(stringIn):
             rest = rest[place+length:]
     return string
 
+
 class VideoWidget(QWidget):
     def __init__(self, video):
         super().__init__()
-        
-        self.resize(imageSize[0]*2*imageSize[2] ,imageSize[1]*imageSize[2])
         
         self.titleStr = findReplaceString(video.name)
         self.description = findReplaceString(video.text)
         self.image = video.image
         self.link = video.link
         self.id = video.link[7:]
+        self.genre = video.getGenre()
 
-        if False:
-            self.dataPath = "data/"
-            self.localBg = "#353638"
-            self.localFg = "white"
-            self.bgSort = "#353638"
-            self.buttonBg = "#aabe44"
-            
-            self.btnFgTmp = self.palette()
-            self.btnFgTmp.setColor(self.foregroundRole(), QtCore.Qt.green) #schrift
-            self.btnFgTmp.setColor(self.backgroundRole(), QtCore.Qt.black)
-            self.buttonFg = "#353638"
-            self.localFont = "Helvetica"
+        if theme!= None:
+            self.theme = theme
+            self.imageSize = theme['imageSize']
         else:
-            self.dataPath = "data/"
-            self.localBg = None
-            self.localFg = None
-            self.bgSort = None
-            self.buttonBg = None
-            self.buttonFg = None
-            self.localFont = "Helvetica"
+            self.theme = {}
+            self.theme['data'] = "data/"
+            self.imageSize = [130, 73, 2]
+            self.theme['buttonBg'] = None
+            self.theme['buttonFg'] = None
+            self.theme['font'] = "Helvetica"
 
-        if not os.path.isfile(self.dataPath + self.id + ".jpg"):
+        if not os.path.isfile(self.theme['data'] + self.id + ".jpg"):
             self.downloadImage()
 
         self.initUI()
-        self.resize(imageSize[0]*2*imageSize[2] ,imageSize[1]*imageSize[2])
+        self.resize(self.imageSize[0]*2*self.imageSize[2] ,self.imageSize[1]*self.imageSize[2])
         
+
     def initUI(self):
 
+        self.resize(self.imageSize[0]*2*self.imageSize[2] ,self.imageSize[1]*self.imageSize[2])
 
         Vbox  = QVBoxLayout(self)
-        Hbox2 = QHBoxLayout(self)
+        Hbox2 = QHBoxLayout()
 
         titleLb = QLabel(self)
-        titleFont = QFont("Helvetica", 5*imageSize[2]+2)
+        titleFont = QFont(self.theme['font'], 5*self.imageSize[2]+2)
         titleFont.setBold(True)
         titleLb.setFont( titleFont )
         titleLb.setText(self.titleStr)
@@ -117,31 +120,42 @@ class VideoWidget(QWidget):
         errorCount = 0
         for i in range(0,2):
             try:
-                pixmap = QPixmap(self.dataPath+str(self.id))
+                pixmap = QPixmap(self.theme['data']+str(self.id))
             except:
                 if errorCount > 0:
-                    pixmap = QPixmap(260,146)
+                    pixmap = QPixmap(self.imageSize[0]*self.imageSize[2],self.imageSize[1]*self.imageSize[2])
                     pixmap.fill(QtCore.Qt.black)
                     print("Error loading Image: " + self.id)
                     break
                 self.downloadImage()
                 errorCount = errorCount+1 
                     
-        img = pixmap.scaled(self.frameGeometry().width()*(1/1), self.frameGeometry().height()*(1/1), QtCore.Qt.KeepAspectRatio)  
+        pixmap = pixmap.scaled(self.imageSize[0]*self.imageSize[2], self.imageSize[1]*self.imageSize[2], QtCore.Qt.KeepAspectRatio)  
         imgLabel.setPixmap(pixmap)
         Hbox2.addWidget(imgLabel)
 
         desc = QLabel(self.description, self)
         desc.setWordWrap(True)
-        desc.setFont(QFont("Helvetica", 5*imageSize[2]+1))
-        desc.setFixedWidth(imageSize[0]*imageSize[2])
+        desc.setFont(QFont(self.theme['font'], 5*self.imageSize[2]+1))
+        desc.setFixedWidth(self.imageSize[0]*self.imageSize[2])
         Hbox2.addWidget(desc)
         Vbox.addLayout(Hbox2)
 
+        string = ""
+        for i in self.genre:
+            string = string + i + ", "
+        string = string[:-2]
+        genreLb = QLabel(string, self)
+        genreLb.setWordWrap(True)
+        genreLb.setFont(QFont(self.theme['font'], 5*self.imageSize[2]+1))
+        genreLb.resize(genreLb.sizeHint())
+        genreLb.setAlignment(QtCore.Qt.AlignCenter)
+        Vbox.addWidget(genreLb)
 
         openbtn = QPushButton("Goto Stream", self)
         openbtn.clicked.connect(self.openLink)
-        openbtn.setFont(QFont("Helvetica", 5*imageSize[2]+1))
+        openbtn.setFont(QFont(self.theme['font'], 5*self.imageSize[2]+1))
+        openbtn.setStyleSheet("background-color: %s; color: %s" % (self.theme['buttonBg'], self.theme['buttonFg']))
         openbtn.resize(openbtn.sizeHint())
         Vbox.addWidget(openbtn)
         
@@ -150,23 +164,22 @@ class VideoWidget(QWidget):
         self.show()
 
     def openLink(self):
-#        global urls
         link = urls[0] + self.link
         print(link)
         webbrowser.open_new_tab(link)
 
     def downloadImage(self):
         print("Downloading Image: " + self.titleStr)
-        if not os.path.exists(self.dataPath):
-            os.mkdir(self.dataPath)
-        f = open(self.dataPath + self.link[7:] + ".jpg", 'wb')
+        if not os.path.exists(self.theme['data']):
+            os.mkdir(self.theme['data'])
+        f = open(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
         try:
             imageFile = urllib.request.urlopen(self.image[1:]).read()
             f.write(imageFile)
             f.close()
         except urllib.error.URLError:
             print("Error loading URL: " + self.image[1:])
-            # window, that informs that the download failed
+            # window, that informs that the download failed?
 
 class OpenButton(QPushButton):
     def __init__(self, text, parent):
@@ -201,20 +214,31 @@ class CheckButtons(QWidget):
         for i, j in enumerate(self.checkbox):
             if j.isChecked():
                 name.append(self.pick[i])
+        print("Genres: " + str(name))
         return name
 
 
 class VideoContainer(QWidget):
-    def __init__(self, img):
+    def __init__(self, database):
         super().__init__()
-        self.img = img
         self.initUI()
 
-        self.sql = sqllib.sqlHandle()
+        self.sql = database
         
         self.fillContainer(self.sql.genGenreList())
 
     def initUI(self):
+
+        self.setWindowTitle('AoD')
+        self.setWindowIcon(QIcon('logo.ico'))
+        self.setMaximumWidth(0)
+
+        color = self.palette()
+        color.setColor(self.backgroundRole(), QColor(theme['bgMain']))
+        color.setColor(self.foregroundRole(), QColor(theme['fgMain']))
+        self.setPalette(color)
+
+        self.setFont(QFont("Helvetica", 5*theme['imageSize'][2]+1))
 
         hbox = QHBoxLayout()
         controlbox = QVBoxLayout()
@@ -223,12 +247,14 @@ class VideoContainer(QWidget):
         controlbox.setAlignment(QtCore.Qt.AlignCenter)
         
         self.scroll = QScrollArea()
+        QScroller.grabGesture(self.scroll.viewport(), QScroller.LeftMouseButtonGesture)
         self.scroll.setWidgetResizable(False)
-        self.scroll.setMinimumHeight(imageSize[1]*4*imageSize[2])
-        self.scroll.setFixedWidth(imageSize[0]*4*imageSize[2]+100)
-        
-#        QScroller.grabGesture(self.scroll.viewport(), QScroller.LeftMouseButtonGesture)
-        
+        self.scroll.setMinimumHeight(theme['imageSize'][1]*4*theme['imageSize'][2])
+        self.scroll.setFixedWidth(theme['imageSize'][0]*4*theme['imageSize'][2]+100)
+        scrollBg = self.palette()
+        scrollBg.setColor(self.backgroundRole(), QColor(theme['bgScroll']))
+        self.scroll.setPalette(scrollBg)
+               
 
         self.chkbox = CheckButtons(genre)
         controlbox.addWidget(self.chkbox)
@@ -236,46 +262,51 @@ class VideoContainer(QWidget):
         self.searchbox = QLineEdit(self)
         self.searchbox.resize(self.searchbox.sizeHint())
         self.searchbox.returnPressed.connect(self.startBtnHandle)
+        self.searchbox.setStyleSheet("background-color: %s; color: %s; border: 0px;" % (theme['entryBg'], theme['entryFg']))
         controlbox.addWidget(self.searchbox) 
 
         startbtn = QPushButton("Start", self)
         startbtn.clicked.connect(self.startBtnHandle)
+        startbtn.setStyleSheet("background-color: %s; color: %s" % (theme['buttonBg'], theme['buttonFg']))
         startbtn.resize(startbtn.sizeHint())
         controlbox.addWidget(startbtn)
+
+        self.statusLb = QLabel("Ready", self)
+        self.statusLb.resize(startbtn.sizeHint())
+        controlbox.addWidget(self.statusLb)
         
         hbox.addWidget(self.scroll)
         hbox.addLayout(controlbox)
                 
         self.setLayout(hbox)
 
-
-#        self.btnFgTmp = self.palette()
-#        self.btnFgTmp.setColor(self.backgroundRole(), QtCore.Qt.black)
-#        self.setPalette(self.btnFgTmp)
-
         self.show()
 
     def startBtnHandle(self):
         try:
+#            QFontDialog.getFont()
             self.fillContainer(self.sql.genGenreList(self.chkbox.getName()))
         except Exception as e: print(e)
         
 
     def fillContainer(self, objects=[], search=None):
         search = self.searchbox.text()
+        print("Serarch: " + search)
+
         mygroupbox = QFrame()
+        
         contentgrid = QGridLayout()
         contentlist = []
 
-        falseEntrys = 0
         i=0
         for x, j in enumerate(objects):
             if search==None or j.checkName(search):
-                contentlist.append( VideoWidget(j) )
+                contentlist.append( VideoWidget(j) )               
                 contentgrid.addWidget(contentlist[i], i/2, i%2)
                 i = i+1
 
         print("Displayed Title: " + str(i))
+        self.statusLb.setText("Loaded %i Titel" % i)
         mygroupbox.setLayout(contentgrid)
         self.scroll.takeWidget()
         self.scroll.setWidget(mygroupbox)
@@ -288,11 +319,13 @@ class VideoContainer(QWidget):
         
 
 if __name__ == '__main__':
-    
+
+    database = sqllib.sqlHandle()
+    database.updateDatabase(urls, searchTerm, genre)
+    print(database.getNewOutdated())
+
     app = QApplication(sys.argv)
-    ex = VideoContainer("data/2.jpg")
-    ex.setWindowTitle('AoD Test')
-#    ex.fillContainer()
-    app.exec()
+    ex = VideoContainer(database)
+    os._exit(app.exec())
 
 
