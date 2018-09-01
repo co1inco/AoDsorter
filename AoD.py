@@ -25,6 +25,7 @@ global searchTerm
 searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
                ['animebox-image'    , 'alt'     , 12, -2],  #Image
                ['href'              , '\">'     ,  2,  0],  #Link
+               ['zu'                , '</a>'    ,  2,  0],  #film/serie
                ['animebox-shorttext', '</p>'    ,  2, -1]   #Short description
                ]
 
@@ -80,6 +81,7 @@ class VideoWidget(QWidget):
         self.link = video.link
         self.id = video.link[7:]
         self.genre = video.getGenre()
+        self.type = video.type
 
         if theme!= None:
             self.theme = theme
@@ -110,7 +112,7 @@ class VideoWidget(QWidget):
         titleFont = QFont(self.theme['font'], 5*self.imageSize[2]+2)
         titleFont.setBold(True)
         titleLb.setFont( titleFont )
-        titleLb.setText(self.titleStr)
+        titleLb.setText("<font color='lightgrey'><b>%s:</b></font> %s" % (self.type, self.titleStr))
         titleLb.setWordWrap(True)
         Vbox.addWidget(titleLb)
 
@@ -191,7 +193,7 @@ class OpenButton(QPushButton):
 
 
 class CheckButtons(QWidget):
-    def __init__(self, pick):
+    def __init__(self, pick, default=False):
         super().__init__()
         vbox = QVBoxLayout(self)
         self.pick = pick
@@ -199,8 +201,10 @@ class CheckButtons(QWidget):
 
         for i, j in enumerate(pick):
             self.checkbox.append(QCheckBox(j))
+            self.checkbox[i].setChecked(default)
             vbox.addWidget(self.checkbox[i])
         self.show()
+
     def getState(self):
         state = []
         for i,j in enumerate(self.checkbox):
@@ -209,6 +213,7 @@ class CheckButtons(QWidget):
             else:
                 state.append(0)
         return state
+
     def getName(self):
         name = []
         for i, j in enumerate(self.checkbox):
@@ -224,7 +229,8 @@ class VideoContainer(QWidget):
         self.initUI()
 
         self.sql = database
-        
+        self.currentType = 0
+
         self.fillContainer(self.sql.genGenreList())
 
     def initUI(self):
@@ -259,6 +265,12 @@ class VideoContainer(QWidget):
         self.chkbox = CheckButtons(genre)
         controlbox.addWidget(self.chkbox)
 
+        self.typeBtn = QPushButton("Filme/Serien", self)
+        self.typeBtn.resize(self.typeBtn.sizeHint())
+        self.typeBtn.clicked.connect(self.typeSelect)
+        self.typeBtn.setStyleSheet("background-color: %s; color: %s; border: 0px;" % (theme['bgScroll'], theme['fgMain']))
+        controlbox.addWidget(self.typeBtn)
+
         self.searchbox = QLineEdit(self)
         self.searchbox.resize(self.searchbox.sizeHint())
         self.searchbox.returnPressed.connect(self.startBtnHandle)
@@ -282,10 +294,20 @@ class VideoContainer(QWidget):
 
         self.show()
 
+    def typeSelect(self):
+        if self.currentType == 0:
+            self.currentType = 1
+            self.typeBtn.setText("Serien")
+        elif self.currentType == 1:
+            self.currentType = 2
+            self.typeBtn.setText("Filme")
+        elif self.currentType == 2:
+            self.currentType = 0
+            self.typeBtn.setText("Filme/Serien")
+
     def startBtnHandle(self):
         try:
-#            QFontDialog.getFont()
-            self.fillContainer(self.sql.genGenreList(self.chkbox.getName()))
+            self.fillContainer(self.sql.genGenreList(self.chkbox.getName(), self.currentType))
         except Exception as e: print(e)
         
 

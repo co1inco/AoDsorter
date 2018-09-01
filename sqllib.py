@@ -8,13 +8,15 @@ class dummyScreen():
         pass
 
 class Video():
-    def __init__(self, name, image, link, text):
+    def __init__(self, name, image, link, text, type=None):
         self.name = name
         self.image = image
         self.link = link
         self.text = text
         self.img = None
         self.genre = []
+
+        self.type = type
 
     def getGenre(self):
         return self.genre
@@ -52,7 +54,7 @@ class sqlHandle():
         self.con = sqlite3.connect(file)
         self.cur = self.con.cursor()
 
-        self.cur.execute("CREATE TABLE IF NOT EXISTS Videos(Id INT, Name TEXT, Image TEXT, Link TEXT, Description TEXT, Valid BOOL, PRIMARY KEY(Id))")
+        self.cur.execute("CREATE TABLE IF NOT EXISTS Videos(Id INT, Name TEXT, Image TEXT, Link TEXT, Description TEXT, Type TEXT, Valid BOOL, PRIMARY KEY(Id))")
         self.cur.execute("CREATE TABLE IF NOT EXISTS Genre(Id INT, GenreName TEXT)")
 
 
@@ -86,8 +88,8 @@ class sqlHandle():
                     loadedGenre = True
                     
                 print("add " + j.name)
-                self.cur.execute("INSERT INTO Videos VALUES('%s', '%s', '%s', '%s', '%s', 1)"
-                            % (videoId, j.name, j.image, j.link, j.text))
+                self.cur.execute("INSERT INTO Videos VALUES('%s', '%s', '%s', '%s', '%s', '%s', 1)"
+                            % (videoId, j.name, j.image, j.link, j.text, j.type))
                 
                 for k in j.genre: #move outside and only do it when new item
                     self.cur.execute("INSERT INTO Genre VALUES('%s', '%s')" % (videoId, k))
@@ -124,16 +126,24 @@ class sqlHandle():
         self.cur.execute("SELECT * FROM Videos WHERE Valid = 1 ORDER BY name")
         return self.createVideoObject(self.cur.fetchall())
 
-    def genGenreList(self, genre = []):
+    def genGenreList(self, genre = [], type=0):
         selection = ""
         print(genre)
+
+        if type == 0:
+            addType = ""
+        elif type == 1:
+            addType = "Type = 'Serie' AND"
+        elif type == 2:
+            addType = "Type = 'Film' AND"
+
         if len(genre):
             for i in genre:
                 selection = selection + " Id IN (SELECT Id FROM genre WHERE genreName = '%s') AND" % i
 
         self.cur.execute("""SELECT * FROM videos
-                            WHERE %s Valid = 1
-                            ORDER BY name""" % selection)
+                            WHERE %s %s Valid = 1
+                            ORDER BY name""" % (selection, addType))
         return self.createVideoObject(self.cur.fetchall())
 
     def getOutdated(self):
@@ -164,7 +174,7 @@ class sqlHandle():
     def createVideoObject(self, fetch):
         videoList = []
         for i in fetch:
-            video = Video(i[1], i[2], i[3], i[4])
+            video = Video(i[1], i[2], i[3], i[4], i[5])
             self.cur.execute("SELECT genrename FROM genre WHERE id = %s" % i[0])
             for j in self.cur.fetchall():
                 video.addGenre(j[0])
@@ -236,9 +246,11 @@ def get_title_list(url, searchTerm):
 
         aLink, text = get_part(text, searchTerm[2])
 
-        aShort, text = get_part(text, searchTerm[3])
+        aType, text = get_part(text, searchTerm[3])
 
-        a.append(Video(aName, aImage, aLink, aShort))
+        aShort, text = get_part(text, searchTerm[4])        
+
+        a.append(Video(aName, aImage, aLink, aShort, aType))
         Start = text.find(searchTerm[0][0])
     print("Main list processing Finished")
     return a       
