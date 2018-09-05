@@ -23,7 +23,7 @@ genre = ['Abenteuer', 'Action', 'Comedy',
 
 global searchTerm
 searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
-               ['animebox-image'    , 'alt'     , 12, -2],  #Image
+               ['animebox-image'    , 'alt'     , 11, -2],  #Image
                ['href'              , '\">'     ,  2,  0],  #Link
                ['zu'                , '</a>'    ,  2,  0],  #film/serie
                ['animebox-shorttext', '</p>'    ,  2, -1]   #Short description
