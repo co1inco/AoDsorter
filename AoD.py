@@ -175,11 +175,15 @@ class VideoWidget(QWidget):
             os.mkdir(self.theme['data'])
         f = open(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
         try:
-            imageFile = urllib.request.urlopen(self.image[1:]).read()
+            imgUrl = "https" + self.image[self.image.find("://"):]
+            print("Using Url: " + imgUrl)
+            imageFile = urllib.request.urlopen(imgUrl).read()
             f.write(imageFile)
             f.close()
         except urllib.error.URLError:
-            print("Error loading URL: " + self.image[1:])
+            print("Error: Image download failed")
+            f.close()
+            os.remove(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
             # window, that informs that the download failed?
 
 class OpenButton(QPushButton):
