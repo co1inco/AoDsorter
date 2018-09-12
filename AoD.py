@@ -31,7 +31,7 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
 
 global theme
 theme = {}
-theme['imageSize'] = [130, 73, 2, 2] #last is additional font scaling after using normal scaling(#3)
+theme['imageSize'] = [130, 73, 2]
 theme['bgMain'] = "#353638"
 theme['fgMain'] = "white"
 theme['bgScroll'] = "#434544"
@@ -42,7 +42,7 @@ theme['entryFg'] = "#353638"
 theme['font']    = "Helvica"
 theme['data']    = "data/"
 
-QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, False)
+QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 global replaceStr
 replaceStr = [["&#39;", "'"],
