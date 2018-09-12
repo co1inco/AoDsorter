@@ -31,7 +31,7 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
 
 global theme
 theme = {}
-theme['imageSize'] = [130, 73, 2]
+theme['imageSize'] = [130, 73, 2, 2] #last is additional font scaling after using normal scaling(#3)
 theme['bgMain'] = "#353638"
 theme['fgMain'] = "white"
 theme['bgScroll'] = "#434544"
@@ -39,9 +39,10 @@ theme['buttonBg'] = "#aabe44"     #aabe44 #66cc00
 theme['buttonFg'] = "#353638"
 theme['entryBg'] = "#aabe44"
 theme['entryFg'] = "#353638"
-
 theme['font']    = "Helvica"
 theme['data']    = "data/"
+
+QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, False)
 
 global replaceStr
 replaceStr = [["&#39;", "'"],
@@ -88,7 +89,7 @@ class VideoWidget(QWidget):
         else:
             self.theme = {}
             self.theme['data'] = "data/"
-            self.imageSize = [130, 73, 2]
+            self.imageSize = [130, 73, 2, 2]
             self.theme['buttonBg'] = None
             self.theme['buttonFg'] = None
             self.theme['font'] = "Helvetica"
@@ -109,6 +110,7 @@ class VideoWidget(QWidget):
 
         titleLb = QLabel(self)
         titleFont = QFont(self.theme['font'], 5*self.imageSize[2]+2)
+#        titleFont.setPixelSize()
         titleFont.setBold(True)
         titleLb.setFont( titleFont )
         titleLb.setText("<font color='lightgrey'><b>%s:</b></font> %s" % (self.type, self.titleStr))
