@@ -72,7 +72,7 @@ def findReplaceString(stringIn):
 
 
 class VideoWidget(QWidget):
-    def __init__(self, video):
+    def __init__(self, video, initHidden=False):
         super().__init__()
         
         self.titleStr = findReplaceString(video.name)
@@ -99,7 +99,9 @@ class VideoWidget(QWidget):
 
         self.initUI()
         self.resize(self.imageSize[0]*2*self.imageSize[2] ,self.imageSize[1]*self.imageSize[2])
-        
+
+        if initHidden == True:
+            self.hide()
 
     def initUI(self):
 
@@ -135,6 +137,9 @@ class VideoWidget(QWidget):
                     
         pixmap = pixmap.scaled(self.imageSize[0]*self.imageSize[2], self.imageSize[1]*self.imageSize[2], QtCore.Qt.KeepAspectRatio)  
         imgLabel.setPixmap(pixmap)
+        try:
+            imgLabel.mousePressEvent = self.openLink
+        except Exception as e: print(e)
         Hbox2.addWidget(imgLabel)
 
         desc = QLabel(self.description, self)
@@ -147,7 +152,8 @@ class VideoWidget(QWidget):
         string = ""
         for i in self.genre:
             string = string + i + ", "
-        string = string[:-2]
+        if len(string) > 2: 
+            string = string[:-2]
         genreLb = QLabel(string, self)
         genreLb.setWordWrap(True)
         genreLb.setFont(QFont(self.theme['font'], 5*self.imageSize[2]+1))
@@ -164,9 +170,7 @@ class VideoWidget(QWidget):
         
         self.setLayout(Vbox)
 
-        self.show()
-
-    def openLink(self):
+    def openLink(self, dummy1=False):
         link = urls[0] + self.link
         print(link)
         webbrowser.open_new_tab(link)
@@ -315,7 +319,14 @@ class VideoContainer(QWidget):
         try:
             self.fillContainer(self.sql.genGenreList(self.chkbox.getName(), self.currentType))
         except Exception as e: print(e)
+
+    def createChildWidgets(self, objects=[]):
+        self.contentlist = []
+        self.mygroupbox = QFrame()
         
+        for i in objects:
+            self.contentlist.append( VideoWidget(i, True) )
+            
 
     def fillContainer(self, objects=[], search=None):
         search = self.searchbox.text()
@@ -338,7 +349,6 @@ class VideoContainer(QWidget):
         mygroupbox.setLayout(contentgrid)
         self.scroll.takeWidget()
         self.scroll.setWidget(mygroupbox)
-
 
     def removeAll(self):
         try:
