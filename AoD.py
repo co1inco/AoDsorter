@@ -39,9 +39,10 @@ theme['buttonBg'] = "#aabe44"     #aabe44 #66cc00
 theme['buttonFg'] = "#353638"
 theme['entryBg'] = "#aabe44"
 theme['entryFg'] = "#353638"
-
 theme['font']    = "Helvica"
 theme['data']    = "data/"
+
+QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 global replaceStr
 replaceStr = [["&#39;", "'"],
@@ -71,7 +72,7 @@ def findReplaceString(stringIn):
 
 
 class VideoWidget(QWidget):
-    def __init__(self, video):
+    def __init__(self, video, initHidden=False):
         super().__init__()
         
         self.titleStr = findReplaceString(video.name)
@@ -88,7 +89,7 @@ class VideoWidget(QWidget):
         else:
             self.theme = {}
             self.theme['data'] = "data/"
-            self.imageSize = [130, 73, 2]
+            self.imageSize = [130, 73, 2, 2]
             self.theme['buttonBg'] = None
             self.theme['buttonFg'] = None
             self.theme['font'] = "Helvetica"
@@ -98,7 +99,9 @@ class VideoWidget(QWidget):
 
         self.initUI()
         self.resize(self.imageSize[0]*2*self.imageSize[2] ,self.imageSize[1]*self.imageSize[2])
-        
+
+        if initHidden == True:
+            self.hide()
 
     def initUI(self):
 
@@ -109,6 +112,7 @@ class VideoWidget(QWidget):
 
         titleLb = QLabel(self)
         titleFont = QFont(self.theme['font'], 5*self.imageSize[2]+2)
+#        titleFont.setPixelSize()
         titleFont.setBold(True)
         titleLb.setFont( titleFont )
         titleLb.setText("<font color='lightgrey'><b>%s:</b></font> %s" % (self.type, self.titleStr))
@@ -133,6 +137,9 @@ class VideoWidget(QWidget):
                     
         pixmap = pixmap.scaled(self.imageSize[0]*self.imageSize[2], self.imageSize[1]*self.imageSize[2], QtCore.Qt.KeepAspectRatio)  
         imgLabel.setPixmap(pixmap)
+        try:
+            imgLabel.mousePressEvent = self.openLink
+        except Exception as e: print(e)
         Hbox2.addWidget(imgLabel)
 
         desc = QLabel(self.description, self)
@@ -145,7 +152,8 @@ class VideoWidget(QWidget):
         string = ""
         for i in self.genre:
             string = string + i + ", "
-        string = string[:-2]
+        if len(string) > 2: 
+            string = string[:-2]
         genreLb = QLabel(string, self)
         genreLb.setWordWrap(True)
         genreLb.setFont(QFont(self.theme['font'], 5*self.imageSize[2]+1))
@@ -162,9 +170,7 @@ class VideoWidget(QWidget):
         
         self.setLayout(Vbox)
 
-        self.show()
-
-    def openLink(self):
+    def openLink(self, dummy1=False):
         link = urls[0] + self.link
         print(link)
         webbrowser.open_new_tab(link)
@@ -175,11 +181,15 @@ class VideoWidget(QWidget):
             os.mkdir(self.theme['data'])
         f = open(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
         try:
-            imageFile = urllib.request.urlopen(self.image[1:]).read()
+            imgUrl = "https" + self.image[self.image.find("://"):]
+            print("Using Url: " + imgUrl)
+            imageFile = urllib.request.urlopen(imgUrl).read()
             f.write(imageFile)
             f.close()
         except urllib.error.URLError:
-            print("Error loading URL: " + self.image[1:])
+            print("Error: Image download failed")
+            f.close()
+            os.remove(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
             # window, that informs that the download failed?
 
 class OpenButton(QPushButton):
@@ -309,7 +319,14 @@ class VideoContainer(QWidget):
         try:
             self.fillContainer(self.sql.genGenreList(self.chkbox.getName(), self.currentType))
         except Exception as e: print(e)
+
+    def createChildWidgets(self, objects=[]):
+        self.contentlist = []
+        self.mygroupbox = QFrame()
         
+        for i in objects:
+            self.contentlist.append( VideoWidget(i, True) )
+            
 
     def fillContainer(self, objects=[], search=None):
         search = self.searchbox.text()
@@ -332,7 +349,6 @@ class VideoContainer(QWidget):
         mygroupbox.setLayout(contentgrid)
         self.scroll.takeWidget()
         self.scroll.setWidget(mygroupbox)
-
 
     def removeAll(self):
         try:
