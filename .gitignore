@@ -287,3 +287,7 @@ SQLiteDatabaseBrowserPortable_3.10.1_English.paf.exe
 database.db
 databasex.db
 logo.png
+
+exe/build/*
+AoD.spec
+exe/AoD.exe
