@@ -42,6 +42,15 @@ theme['entryFg'] = "#353638"
 theme['font']    = "Helvica"
 theme['data']    = "./"
 
+
+#use appdata to store files if cwd is a temp dir to avoid redownloading the thumbnails on every application launch
+if os.getcwd().find("Temp") != -1:
+    theme['data'] = os.getenv('APPDATA') + "/AoDSorter/"
+    if not os.path.isdir(theme['data']):
+        os.mkdir(theme['data'])
+
+
+#prevent windows autoscaling
 QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 global replaceStr
