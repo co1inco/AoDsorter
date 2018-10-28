@@ -49,8 +49,8 @@ class Video():
 
 
 class sqlHandle():
-    def __init__(self, file = "database.db"):
-        self.con = sqlite3.connect(file)
+    def __init__(self, path=".", file="database.db"):
+        self.con = sqlite3.connect(path + file)
         self.cur = self.con.cursor()
 
         self.cur.execute("CREATE TABLE IF NOT EXISTS Videos(Id INT, Name TEXT, Image TEXT, Link TEXT, Description TEXT, Type TEXT, Valid BOOL, PRIMARY KEY(Id))")
@@ -82,7 +82,7 @@ class sqlHandle():
                     onlineListe = addGenre(urls, genre, onlineListe, searchTerms)
                     loadedGenre = True
                     
-                print("add " + j.name)
+                print(("add " + j.name).encode("utf-8"))
                 self.cur.execute("INSERT INTO Videos VALUES('%s', '%s', '%s', '%s', '%s', '%s', 1)"
                             % (videoId, j.name, j.image, j.link, j.text, j.type))
                 
