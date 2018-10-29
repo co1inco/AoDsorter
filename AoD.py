@@ -31,7 +31,7 @@ searchTerm = [ ['animebox-title'    , '</h3>'   ,  2,  0],  #Name
 
 global theme
 theme = {}
-theme['imageSize'] = [130, 73, 2]
+theme['imageSize'] = [130+5, 73, 2]
 theme['bgMain'] = "#353638"
 theme['fgMain'] = "white"
 theme['bgScroll'] = "#434544"
@@ -343,6 +343,33 @@ class VideoContainer(QWidget):
             
 
     def fillContainer(self, objects=[], search=None):
+        loadinScreen = True
+        #loading screeen
+        if loadinScreen:
+            loadingBarTitle = QMainWindow()
+
+            splash_pix = QPixmap('logo.png')
+
+            splash = QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
+            splash.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
+            splash.setEnabled(False)
+
+            progressBar = QProgressBar(splash)
+            progressBar.setMaximum(len(objects)-1)
+            progressBar.setGeometry(0, splash_pix.height()-45, splash_pix.width(), 20)
+
+            splash.show()
+        
+            t = time.time()
+            while time.time() < t + 0.1:
+                app.processEvents()
+
+
+            progressBar.setValue(0)
+
+        #loading screen
+
+        
         search = self.searchbox.text()
         print("Serarch: " + search)
 
@@ -357,6 +384,7 @@ class VideoContainer(QWidget):
                 contentlist.append( VideoWidget(j) )               
                 contentgrid.addWidget(contentlist[i], i/2, i%2)
                 i = i+1
+            progressBar.setValue(x)
 
         print("Displayed Title: " + str(i))
         self.statusLb.setText("%i Titel geladen" % i)
