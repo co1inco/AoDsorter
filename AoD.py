@@ -40,8 +40,17 @@ theme['buttonFg'] = "#353638"
 theme['entryBg'] = "#aabe44"
 theme['entryFg'] = "#353638"
 theme['font']    = "Helvica"
-theme['data']    = "data/"
+theme['data']    = "./"
 
+
+#use appdata to store files if cwd is a temp dir to avoid redownloading the thumbnails on every application launch
+if os.getcwd().find("Temp") != -1:
+    theme['data'] = os.getenv('APPDATA') + "/AoDSorter/"
+    if not os.path.isdir(theme['data']):
+        os.mkdir(theme['data'])
+
+
+#prevent windows autoscaling
 QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 global replaceStr
@@ -94,7 +103,12 @@ class VideoWidget(QWidget):
             self.theme['buttonFg'] = None
             self.theme['font'] = "Helvetica"
 
-        if not os.path.isfile(self.theme['data'] + self.id + ".jpg"):
+        self.imgPath = self.theme['data'] + "thumbnails/"
+
+        if not os.path.isdir(self.imgPath):
+            os.makedirs(self.imgPath)
+
+        if not os.path.isfile(self.imgPath + self.id + ".jpg"):
             self.downloadImage()
 
         self.initUI()
@@ -125,7 +139,7 @@ class VideoWidget(QWidget):
         errorCount = 0
         for i in range(0,2):
             try:
-                pixmap = QPixmap(self.theme['data']+str(self.id))
+                pixmap = QPixmap(self.imgPath+str(self.id))
             except:
                 if errorCount > 0:
                     pixmap = QPixmap(self.imageSize[0]*self.imageSize[2],self.imageSize[1]*self.imageSize[2])
@@ -176,20 +190,20 @@ class VideoWidget(QWidget):
         webbrowser.open_new_tab(link)
 
     def downloadImage(self):
-        print("Downloading Image: " + self.titleStr)
-        if not os.path.exists(self.theme['data']):
-            os.mkdir(self.theme['data'])
-        f = open(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
+        print(("Downloading Image: " + self.titleStr).encode("utf-8"))
+        if not os.path.exists(self.imgPath):
+            os.mkdir(self.imgPath)
+        f = open(self.imgPath + self.link[7:] + ".jpg", 'wb')
         try:
             imgUrl = "https" + self.image[self.image.find("://"):]
-            print("Using Url: " + imgUrl)
+            print(("Using Url: " + imgUrl).encode("utf-8"))
             imageFile = urllib.request.urlopen(imgUrl).read()
             f.write(imageFile)
             f.close()
         except urllib.error.URLError:
-            print("Error: Image download failed")
+            print(("Error: Image download failed").encode("utf-8"))
             f.close()
-            os.remove(self.theme['data'] + self.link[7:] + ".jpg", 'wb')
+            os.remove(self.imgPath + self.link[7:] + ".jpg", 'wb')
             # window, that informs that the download failed?
 
 class OpenButton(QPushButton):
@@ -358,7 +372,7 @@ class VideoContainer(QWidget):
 
 if __name__ == '__main__':
 
-    database = sqllib.sqlHandle()
+    database = sqllib.sqlHandle(theme['data'])
     database.updateDatabase(urls, searchTerm, genre)
     print(database.getNewOutdated())
 
