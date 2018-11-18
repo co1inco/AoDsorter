@@ -422,6 +422,14 @@ class VideoContainer(QWidget):
         except Exception as e: print(e)
 
 
+    def list2messagebox(self, title,l):
+        if len(l) < 1:
+            return
+        s = ""
+        for i in l:
+            print(i)
+            s = s + ("ID: %4i: %s\n" % (i[0][0], i[0][1]))
+        QMessageBox.about(self, title, s)
 
     
 def main():
