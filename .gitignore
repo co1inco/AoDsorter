@@ -291,3 +291,6 @@ logo.png
 exe/build/*
 AoD.spec
 exe/AoD.exe
+exe/AoD-compressed.exe
+*.db-journal
+exe/icon.ico

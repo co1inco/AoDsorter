@@ -4,7 +4,7 @@ import os
 
 build_exe_options = {"excludes": ["tkinter"],
                      "packages": ["idna"],
-                     "include_files": ["exe/logo.png"],
+                     "include_files": ["logo.png"],
                      "optimize": 2}  
 
 base = None  

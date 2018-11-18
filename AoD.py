@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from  PyQt5 import QtCore
+from PyQt5.QtWidgets import QMessageBox
 
 import os, os.path, sys
 import webbrowser, urllib
@@ -78,6 +79,49 @@ def findReplaceString(stringIn):
             newName = newName + rest[:place] + replaceWith
             rest = rest[place+length:]
     return string
+
+
+class loadingScreen():
+    def __init__(self, length, startCount=0, splashImage='logo.png'):
+        self.loadingBarTitle = QMainWindow()
+
+        splash_pix = QPixmap(splashImage)
+
+        self.splash = QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
+        self.splash.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
+        self.splash.setEnabled(False)
+
+        self.progressBar = QProgressBar(self.splash)
+        self.progressBar.setMaximum(length)
+        self.progressBar.setGeometry(0, splash_pix.height()-45, splash_pix.width(), 20)
+
+        self.splash.show()
+
+        #self.root = QApplication([])
+        
+        try:
+            self.app = app
+        except:
+            print("New app for loadingscreen")
+            self.app = QApplication(sys.argv)
+                
+        t = time.time()
+        while time.time() < t + 0.1:
+            self.app.processEvents()
+
+        self.count = startCount
+        self.progressBar.setValue(self.count)
+
+    def increase(self):
+        self.count = self.count + 1
+        self.progressBar.setValue(self.count)
+
+    def destroy(self):
+        pass
+        #self.app.quit()
+
+    def setValue(self, count):
+        self.progressBar.setValue(count)
 
 
 class VideoWidget(QWidget):
@@ -344,30 +388,10 @@ class VideoContainer(QWidget):
 
     def fillContainer(self, objects=[], search=None):
         loadinScreen = True
+        
         #loading screeen
         if loadinScreen:
-            loadingBarTitle = QMainWindow()
-
-            splash_pix = QPixmap('logo.png')
-
-            splash = QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
-            splash.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
-            splash.setEnabled(False)
-
-            progressBar = QProgressBar(splash)
-            progressBar.setMaximum(len(objects)-1)
-            progressBar.setGeometry(0, splash_pix.height()-45, splash_pix.width(), 20)
-
-            splash.show()
-        
-            t = time.time()
-            while time.time() < t + 0.1:
-                app.processEvents()
-
-
-            progressBar.setValue(0)
-
-        #loading screen
+            ls = loadingScreen(len(objects)-1)
 
         
         search = self.searchbox.text()
@@ -384,7 +408,7 @@ class VideoContainer(QWidget):
                 contentlist.append( VideoWidget(j) )               
                 contentgrid.addWidget(contentlist[i], i/2, i%2)
                 i = i+1
-            progressBar.setValue(x)
+            ls.setValue(x)
 
         print("Displayed Title: " + str(i))
         self.statusLb.setText("%i Titel geladen" % i)
@@ -396,16 +420,24 @@ class VideoContainer(QWidget):
         try:
             self.scroll.takeWidget()
         except Exception as e: print(e)
-        
 
-if __name__ == '__main__':
+
+
+    
+def main():
+
+    global app
+    app = QApplication(sys.argv)
 
     database = sqllib.sqlHandle(theme['data'])
-    database.updateDatabase(urls, searchTerm, genre)
-    print(database.getNewOutdated())
+    database.updateDatabase(urls, searchTerm, genre, loadingScreen)
+    
+#    print(database.getNewOutdated())
 
-    app = QApplication(sys.argv)
     ex = VideoContainer(database)
+    ex.list2messagebox("Removed", database.getNewOutdated())
+#    database.closeFile()
     os._exit(app.exec())
 
-
+if __name__ == '__main__':
+    main()

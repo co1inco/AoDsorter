@@ -1,10 +1,7 @@
 import sqlite3
 import urllib.request
 
-from PyQt5.QtWidgets import *
-from  PyQt5 import QtCore
-from PyQt5.QtGui import *
-import time
+import os
 
 class Video():
     def __init__(self, name, image, link, text, type=None):
@@ -49,7 +46,7 @@ class Video():
 
 
 class sqlHandle():
-    def __init__(self, path=".", file="database.db"):
+    def __init__(self, path="./", file="database.db"):
         self.con = sqlite3.connect(path + file)
         self.cur = self.con.cursor()
 
@@ -57,7 +54,7 @@ class sqlHandle():
         self.cur.execute("CREATE TABLE IF NOT EXISTS Genre(Id INT, GenreName TEXT)")
 
 
-    def updateDatabase(self, urls, searchTerms, genre):
+    def updateDatabase(self, urls, searchTerms, genre, loadingScreen=None):
 
         onlineListe = get_title_list(urls[0] + urls[1], searchTerms)
 #        onlineListe = onlineListe[3:] remove title from online data (testing purposes)
@@ -79,7 +76,7 @@ class sqlHandle():
             #add new
             if len(self.cur.fetchall()) == 0:
                 if loadedGenre == False:
-                    onlineListe = addGenre(urls, genre, onlineListe, searchTerms)
+                    onlineListe = addGenre(urls, genre, onlineListe, searchTerms, loadingScreen)
                     loadedGenre = True
                     
                 print(("add " + j.name).encode("utf-8"))
@@ -175,31 +172,14 @@ class sqlHandle():
                 video.addGenre(j[0])
             videoList.append(video)
         return videoList
-    
 
-def addGenre(urls, genreList, videoList, searchTerm): 
-    if True:
-        app = QApplication([])
+    def closeFile(self):
+        self.con.close()
 
-        splash_pix = QPixmap('logo.png')
+def addGenre(urls, genreList, videoList, searchTerm, loadingScreen=None):
 
-        splash = QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
-        splash.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.FramelessWindowHint)
-        splash.setEnabled(False)
-
-        progressBar = QProgressBar(splash)
-        progressBar.setMaximum(len(genreList)-1)
-        progressBar.setGeometry(0, splash_pix.height()-45, splash_pix.width(), 20)
-
-        splash.show()
-        
-        t = time.time()
-        while time.time() < t + 0.1:
-            app.processEvents()
-
-
-        i = 0
-        progressBar.setValue(i)
+    if loadingScreen != None:
+        ls = loadingScreen(len(genreList)-1)
 
     for index, genre in enumerate(genreList):
         if genre == "Deutsch":
@@ -237,9 +217,10 @@ def addGenre(urls, genreList, videoList, searchTerm):
                     title.pop(0)
             except IndexError:
                 break
-        progressBar.setValue(index)
+        if loadingScreen != None:
+            ls.setValue(index)
 
-    time.sleep(1)
+#    time.sleep(1)
     return videoList
 
 
